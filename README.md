@@ -245,4 +245,4 @@ HMG uses a **two-tier** license model:
 - **Community Edition binary**: [LICENSE-COMMUNITY](LICENSE-COMMUNITY) — free to use, no redistribution
 - **Memory intelligence engine**: proprietary (HMG Proprietary Source License)
 
-Copyright © 武汉凡尘合创科技有限公司 / HMG AI.
+Copyright © HMG AI, Inc.
