@@ -4,7 +4,7 @@ HTTP-Basis-URL: `http://localhost:7654` (Standard).
 
 ## MCP-Werkzeuge
 
-HMG stellt 47 MCP-Werkzeuge für Core Memory, Governance, MemoryQL, Observation, Vault, Panorama und Graph-Health-Workflows bereit.
+HMG stellt 48 MCP-Werkzeuge für Core Memory, Governance, MemoryQL, Observation, Vault, Panorama und Graph-Health-Workflows bereit.
 
 ### `memory_memorize`
 Speichert dauerhafte Informationen.

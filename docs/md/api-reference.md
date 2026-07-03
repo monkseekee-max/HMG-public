@@ -4,7 +4,7 @@ Base URL for HTTP: `http://localhost:7654` (default).
 
 ## MCP Tools
 
-HMG exposes 47 MCP tools across core memory, governance, MemoryQL,
+HMG exposes 48 MCP tools across core memory, governance, MemoryQL,
 observation, secret-vault, panorama, and graph-health workflows. The core
 tools below accept an optional `context` object with scope fields for
 branch-aware memory.

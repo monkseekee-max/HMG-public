@@ -4,7 +4,7 @@ URL de base HTTP : `http://localhost:7654` (par défaut).
 
 ## Outils MCP
 
-HMG expose 47 outils MCP pour la mémoire principale, la gouvernance, MemoryQL, les observations, le coffre, panorama et les workflows de santé du graphe. Les outils principaux ci-dessous acceptent un objet `context` optionnel avec des champs de portée pour la mémoire sensible aux branches.
+HMG expose 48 outils MCP pour la mémoire principale, la gouvernance, MemoryQL, les observations, le coffre, panorama et les workflows de santé du graphe. Les outils principaux ci-dessous acceptent un objet `context` optionnel avec des champs de portée pour la mémoire sensible aux branches.
 
 ### `memory_memorize`
 

@@ -1,7 +1,7 @@
 # @hmg_ai/sdk-ts
 
 <p>
-  <img src="https://img.shields.io/badge/version-1.7.3-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.7.4-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-Apache--2.0-green.svg" alt="License">
   <img src="https://img.shields.io/badge/platform-Node.js%2018%2B-blue.svg" alt="Platform">
 </p>

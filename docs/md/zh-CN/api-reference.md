@@ -4,7 +4,7 @@ HTTP 基础 URL：`http://localhost:7654`（默认）。
 
 ## MCP 工具
 
-HMG 暴露 47 个 MCP 工具，覆盖核心记忆、治理、MemoryQL、观察、密钥库、panorama 和图健康工作流。下面的核心工具接受可选的 `context` 对象，包含作用域字段以实现分支感知记忆。
+HMG 暴露 48 个 MCP 工具，覆盖核心记忆、治理、MemoryQL、观察、密钥库、panorama 和图健康工作流。下面的核心工具接受可选的 `context` 对象，包含作用域字段以实现分支感知记忆。
 
 ### `memory_memorize`
 

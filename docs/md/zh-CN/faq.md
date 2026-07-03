@@ -34,7 +34,7 @@ HMG（Holographic Memory Graph）是一个面向 AI Agent 的长期记忆内核�
 
 ### Community Edition 是免费的吗？
 
-是的，完全免费。不需要 license key，不需要注册。100,000 记忆原子、5 Agent/实例、全部 47 个 MCP 工具。
+是的，完全免费。不需要 license key，不需要注册。100,000 记忆原子、5 Agent/实例、全部 48 个 MCP 工具。
 
 ### 100,000 原子够用吗？
 

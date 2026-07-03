@@ -6,6 +6,39 @@ For binary release notes, see [GitHub Releases](https://github.com/HMG-AI/HMG/re
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.1] - 2026-06-30
+
+Release hardening for coding-agent memory integrations, external agent
+compliance evidence, and provenance-safe audit metadata.
+
+### Added
+
+- Public release metadata now tracks the 1.7.1 binary release across the
+  protocol crate, SDK package manifests, Pi agent manifest, public manifest,
+  README badges, and public docs install examples.
+
+### Changed
+
+- Public docs and install snippets now point at `hmg-1.7.1-*` release assets
+  when showing explicit artifact names.
+
+## [1.7.0] - 2026-06-30
+
+Semantic recall quality and zero-touch embedding setup release.
+
+### Added
+
+- `hmg setup` and the installer pre-warm the local semantic embedding model
+  when available, while preserving lazy fallback behavior for offline installs.
+- `hmg doctor` reports embedding model cache state and gives an actionable
+  remediation path when the model is missing.
+
+### Fixed
+
+- The fastembed-backed E5 provider now routes stored passages and search
+  queries through role-aware embedding prefixes so cosine ranking uses the
+  intended asymmetric embedding space.
+
 ## [1.6.7] — 2026-06-28
 
 Installer reliability and version-tracking release for the Community Edition
