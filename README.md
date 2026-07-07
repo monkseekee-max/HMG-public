@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.4-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.7.5-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-Apache--2.0%20%7C%20Community-green.svg" alt="License">
   <img src="https://img.shields.io/badge/rust-1.85%2B-orange.svg" alt="Rust">
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg" alt="Platform">
@@ -121,7 +121,7 @@ Not a vector database. Not a key-value store. HMG models memory as a **typed gra
 - **🌿 Branch-Aware Scope** — `tenant → workspace → repository → branch`. Memories stay isolated per branch and become traceable on merge — your `feature/auth` work doesn't bleed into `feature/payments`.
 - **🛡️ Governance Control Plane** — Quarantine, seal, tombstone, or derive lessons. Policy tags and audit context flow through every operation. Normal recall skips governed content; audit recall still sees it.
 - **🏠 Local-First** — Embedded storage, zero external dependencies. Your memory lives on your machine, works offline, and never phones home.
-- **🔌 48 MCP Tools** — Memorize, recall, correct, govern, history, handoff, agent-brief, MemoryQL, observation capture, vault, panorama, and graph-health workflows — all over a single standard interface.
+- **🔌 49 MCP Tools** — Memorize, recall, correct, govern, history, handoff, agent-brief, MemoryQL, observation capture, vault, panorama, and graph-health workflows — all over a single standard interface.
 - **📜 Open Protocol** — [`hmg-protocol`](protocol/) (Apache-2.0) is a standalone crate defining types and serialization for every memory operation. Implement it, verify against it, build on it.
 
 ## What's New in v1.6
@@ -210,7 +210,7 @@ This repository holds the **public artifacts** for HMG — everything you need t
 | Path | What it is |
 |------|-----------|
 | [`protocol/`](protocol/) | `hmg-protocol` (Apache-2.0) — standalone crate defining all memory types & serialization |
-| [`mcp/schemas/`](mcp/schemas/) | MCP tool definitions for all 48 public tools |
+| [`mcp/schemas/`](mcp/schemas/) | MCP tool definitions for all 49 public tools |
 | [`openapi/`](openapi/) | HTTP API specification |
 | [`sdk-python/`](sdk-python/) · [`sdk-ts/`](sdk-ts/) | Official Python and TypeScript SDKs |
 | [`certification/`](certification/) | Conformance tests for compatible implementations |
