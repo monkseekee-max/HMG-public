@@ -11,8 +11,7 @@ jobs:
   approval-commitlint:
     name: approval-commitlint
     if: github.event.review.state == 'approved'
-    uses: HMG-AI/.github/.github/workflows/reusable-commitlint.yml@593e8e253dd3ca85dace3ebe24383d2a131592d5
+    uses: HMG-AI/.github/.github/workflows/reusable-commitlint.yml@978d6d08d6bfc1e8a3662c1f9b0daab8bfa0e557
     with:
       base_sha: ${{ github.event.pull_request.base.sha }}
       head_sha: ${{ github.event.pull_request.head.sha }}
-
