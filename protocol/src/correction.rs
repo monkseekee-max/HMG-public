@@ -23,7 +23,13 @@ pub enum CorrectionAction {
 impl CorrectionAction {
     /// All valid correction action variants as wire strings.
     pub fn all_variants() -> &'static [&'static str] {
-        &["negate", "confirm_actual", "confirm_necessary", "demote", "replace"]
+        &[
+            "negate",
+            "confirm_actual",
+            "confirm_necessary",
+            "demote",
+            "replace",
+        ]
     }
 
     /// Parse a wire string into a CorrectionAction.

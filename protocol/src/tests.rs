@@ -49,16 +49,29 @@ fn correction_action_rejects_unknown() {
 #[test]
 fn polarity_wire_format() {
     let positive = crate::Polarity::Positive;
-    let negative = crate::Polarity::Negative { reason: Some("test".into()) };
-    let conditional = crate::Polarity::Conditional { condition: Some("if X".into()) };
+    let negative = crate::Polarity::Negative {
+        reason: Some("test".into()),
+    };
+    let conditional = crate::Polarity::Conditional {
+        condition: Some("if X".into()),
+    };
 
     let json_pos = serde_json::to_string(&positive).unwrap();
     let json_neg = serde_json::to_string(&negative).unwrap();
     let json_cond = serde_json::to_string(&conditional).unwrap();
 
-    assert!(json_pos.contains("\"positive\""), "Polarity::Positive should serialize to snake_case");
-    assert!(json_neg.contains("\"negative\""), "Polarity::Negative should serialize to snake_case");
-    assert!(json_cond.contains("\"conditional\""), "Polarity::Conditional should serialize to snake_case");
+    assert!(
+        json_pos.contains("\"positive\""),
+        "Polarity::Positive should serialize to snake_case"
+    );
+    assert!(
+        json_neg.contains("\"negative\""),
+        "Polarity::Negative should serialize to snake_case"
+    );
+    assert!(
+        json_cond.contains("\"conditional\""),
+        "Polarity::Conditional should serialize to snake_case"
+    );
 }
 
 /// EpistemicStatus enum covers the three canonical states.
@@ -188,15 +201,13 @@ fn scope_ref_json_roundtrip() {
 #[test]
 fn recall_response_json_roundtrip() {
     let response = crate::RecallResponse {
-        atoms: vec![
-            crate::RecallAtom {
-                content: "test memory".into(),
-                id: "01ABC".into(),
-                relevance: 0.95,
-                scope: Some("tenant-acme/platform/repo/main".into()),
-                created_at: Some("2026-05-24T12:00:00Z".into()),
-            },
-        ],
+        atoms: vec![crate::RecallAtom {
+            content: "test memory".into(),
+            id: "01ABC".into(),
+            relevance: 0.95,
+            scope: Some("tenant-acme/platform/repo/main".into()),
+            created_at: Some("2026-05-24T12:00:00Z".into()),
+        }],
         total_candidates: 10,
         query: "test query".into(),
         format: crate::OutputFormat::CompactYaml,

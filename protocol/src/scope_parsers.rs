@@ -6,9 +6,7 @@ use crate::scope::{ScopeRef, ScopeSegment};
 ///
 /// Expected keys depend on domain pack. For software-engineering:
 /// `tenant_id`, `workspace`, `repository`, `branch`, `task_id`, etc.
-pub fn parse_scope_from_map(
-    map: &std::collections::HashMap<String, String>,
-) -> Option<ScopeRef> {
+pub fn parse_scope_from_map(map: &std::collections::HashMap<String, String>) -> Option<ScopeRef> {
     let tenant_id = map.get("tenant_id")?;
     let mut path = Vec::new();
 

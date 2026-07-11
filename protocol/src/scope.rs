@@ -36,16 +36,23 @@ impl ScopeRef {
     /// ```ignore
     /// let scope = ScopeRef::coding_agent("my-tenant", "my-workspace", "my-repo", "main");
     /// ```
-    pub fn coding_agent(
-        tenant_id: &str,
-        workspace: &str,
-        repository: &str,
-        branch: &str,
-    ) -> Self {
-        Self::new(tenant_id, vec![
-            ScopeSegment { kind: "workspace".into(), id: workspace.into() },
-            ScopeSegment { kind: "repository".into(), id: repository.into() },
-            ScopeSegment { kind: "branch".into(), id: branch.into() },
-        ])
+    pub fn coding_agent(tenant_id: &str, workspace: &str, repository: &str, branch: &str) -> Self {
+        Self::new(
+            tenant_id,
+            vec![
+                ScopeSegment {
+                    kind: "workspace".into(),
+                    id: workspace.into(),
+                },
+                ScopeSegment {
+                    kind: "repository".into(),
+                    id: repository.into(),
+                },
+                ScopeSegment {
+                    kind: "branch".into(),
+                    id: branch.into(),
+                },
+            ],
+        )
     }
 }

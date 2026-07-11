@@ -47,7 +47,7 @@ pub struct AtomView {
 /// Assertion polarity — whether the memory is asserted as true, false, or
 /// conditionally true.
 #[derive(Clone, Debug, serde::Serialize, serde::Deserialize, PartialEq)]
-    #[serde(rename_all = "snake_case")]
+#[serde(rename_all = "snake_case")]
 pub enum Polarity {
     /// The memory is asserted as true.
     Positive,
