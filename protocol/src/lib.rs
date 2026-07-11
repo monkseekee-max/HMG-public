@@ -11,11 +11,11 @@
 
 pub mod atom;
 pub mod bulk;
+pub mod context;
 pub mod correction;
 pub mod governance;
-pub mod scope;
-pub mod context;
 pub mod output;
+pub mod scope;
 pub mod scope_parsers;
 
 #[cfg(test)]
@@ -23,8 +23,8 @@ mod tests;
 
 pub use atom::*;
 pub use bulk::*;
+pub use context::{AccessLevel, MemoryContextView};
 pub use correction::*;
 pub use governance::*;
-pub use scope::{ScopeRef, ScopeSegment};
-pub use context::{AccessLevel, MemoryContextView};
 pub use output::*;
+pub use scope::{ScopeRef, ScopeSegment};

@@ -2,5 +2,5 @@
 * @HMG-AI/docs-maintainers
 
 /.github/ @HMG-AI/docs-maintainers @HMG-AI/release-managers
+/.github/workflows/ @HMG-AI/release-managers
 /.github/CODEOWNERS @HMG-AI/release-managers
-

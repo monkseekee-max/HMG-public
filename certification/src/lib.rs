@@ -39,11 +39,20 @@ mod tests {
 
     #[test]
     fn correction_action_all_variants_round_trip() {
-        for variant in &["negate", "confirm_actual", "confirm_necessary", "demote", "replace"] {
+        for variant in &[
+            "negate",
+            "confirm_actual",
+            "confirm_necessary",
+            "demote",
+            "replace",
+        ] {
             let action = CorrectionAction::from_str(variant)
                 .unwrap_or_else(|| panic!("Unknown variant: {variant}"));
             let json = serde_json::to_string(&action).unwrap();
-            assert!(json.contains(variant), "Serialized form should contain {variant}");
+            assert!(
+                json.contains(variant),
+                "Serialized form should contain {variant}"
+            );
         }
     }
 
@@ -67,8 +76,12 @@ mod tests {
     fn polarity_variants_round_trip() {
         let variants = [
             Polarity::Positive,
-            Polarity::Negative { reason: Some("test".into()) },
-            Polarity::Conditional { condition: Some("if X".into()) },
+            Polarity::Negative {
+                reason: Some("test".into()),
+            },
+            Polarity::Conditional {
+                condition: Some("if X".into()),
+            },
         ];
 
         for p in &variants {
@@ -147,15 +160,13 @@ mod tests {
     #[test]
     fn recall_response_shape() {
         let response = RecallResponse {
-            atoms: vec![
-                RecallAtom {
-                    content: "test".into(),
-                    id: "01ABC".into(),
-                    relevance: 0.95,
-                    scope: Some("tenant/ws/repo/branch".into()),
-                    created_at: Some("2026-05-24T12:00:00Z".into()),
-                },
-            ],
+            atoms: vec![RecallAtom {
+                content: "test".into(),
+                id: "01ABC".into(),
+                relevance: 0.95,
+                scope: Some("tenant/ws/repo/branch".into()),
+                created_at: Some("2026-05-24T12:00:00Z".into()),
+            }],
             total_candidates: 10,
             query: "test query".into(),
             format: OutputFormat::CompactYaml,

@@ -1,0 +1,4 @@
+# actionlint v1.7.7 does not yet include this GitHub-hosted public-preview label.
+self-hosted-runner:
+  labels:
+    - windows-11-arm
