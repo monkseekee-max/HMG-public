@@ -1,8 +1,11 @@
 # Protected public release publisher
 
-`publish-promoted-release.yml` is the only workflow allowed to turn a merged
-public-export promotion into a final `v*.*.*` release. Ordinary `main` commits
-without HMG promotion trailers are read-only no-ops.
+`publish-promoted-release.yml` is the sole governed workflow for turning a
+merged public-export promotion into a final `v*.*.*` release. Ordinary `main`
+commits without HMG promotion trailers are read-only no-ops. The live tag
+ruleset prevents updates and deletion after creation; it does not independently
+enforce an exclusive creator. An unexpected pre-existing or misdirected final
+tag therefore makes the quality gate or publisher fail closed.
 
 The publisher requires exactly these signed trailers:
 
