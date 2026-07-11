@@ -1,0 +1,23 @@
+name: Commit Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: commitlint-${{ github.event.pull_request.number || github.event.merge_group.head_sha }}
+  cancel-in-progress: true
+
+jobs:
+  commitlint:
+    name: commitlint
+    uses: HMG-AI/.github/.github/workflows/reusable-commitlint.yml@593e8e253dd3ca85dace3ebe24383d2a131592d5
+    with:
+      base_sha: ${{ github.event.pull_request.base.sha || github.event.merge_group.base_sha }}
+      head_sha: ${{ github.event.pull_request.head.sha || github.event.merge_group.head_sha }}
+

@@ -2,8 +2,9 @@
 name: Bug report
 about: Report a bug in HMG protocol, SDK, documentation, or tools
 title: "[Bug] "
-labels: bug
+labels: "type: bug,status: triage"
 assignees: ''
+projects: "HMG-AI/1"
 ---
 
 ## Environment

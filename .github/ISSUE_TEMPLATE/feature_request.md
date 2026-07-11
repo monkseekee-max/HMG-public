@@ -2,8 +2,9 @@
 name: Feature request
 about: Suggest a feature for the HMG protocol, SDK, or documentation
 title: "[Feature] "
-labels: enhancement
+labels: "type: feature,status: triage"
 assignees: ''
+projects: "HMG-AI/1"
 ---
 
 ## Summary
