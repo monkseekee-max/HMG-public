@@ -11,8 +11,26 @@ on:
 permissions:
   contents: read
 
+env:
+  RELEASE_VERSION: ${{ inputs.version }}
+
 jobs:
+  validate-version:
+    name: Validate canonical release version
+    runs-on: ubuntu-22.04
+    timeout-minutes: 5
+    steps:
+      - name: Require a canonical stable SemVer version
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ ! "${RELEASE_VERSION}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]; then
+            echo "::error::Release version must be canonical stable SemVer (for example 1.7.5), got: ${RELEASE_VERSION}"
+            exit 1
+          fi
+
   build:
+    needs: validate-version
     strategy:
       fail-fast: false
       matrix:
@@ -32,6 +50,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          persist-credentials: false
 
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@4be7066ada62dd38de10e7b70166bc74ed198c30 # stable
@@ -108,8 +128,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p /tmp/mirror
-          gh release download v${{ inputs.version }} \
-            --repo ${{ github.repository }} \
+          gh release download "v${RELEASE_VERSION}" \
+            --repo "${GITHUB_REPOSITORY}" \
             --dir /tmp/mirror
       - name: Upload to website mirror
         # Deploy binaries to hmg1ai.com/releases/
