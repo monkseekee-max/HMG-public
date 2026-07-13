@@ -123,6 +123,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/MemorizeEnvelopeResponse"
+  /api/memorize/bulk:
+    post:
+      summary: Memorize multiple items with streamed progress
+      operationId: bulkMemorize
+      security:
+        - ApiKeyAuth: []
+      parameters:
+        - $ref: "#/components/parameters/TenantHeader"
+        - $ref: "#/components/parameters/ActorIdHeader"
+        - $ref: "#/components/parameters/ActorKindHeader"
+        - $ref: "#/components/parameters/TraceIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BulkMemorizeRequest"
+      responses:
+        "200":
+          description: >
+            Server-Sent Events stream. Each item_done event reports the item result
+            and may include effect, commit_outcome, reconciliation_required, and a
+            durability receipt. The completed event may include applied, no_op,
+            rejected, degraded, and unknown aggregates. A worker failure emits a
+            terminal error event. Items are committed independently; this endpoint
+            does not promise whole-batch atomicity.
+          content:
+            text/event-stream:
+              schema:
+                type: string
   /api/recall:
     post:
       summary: Recall relevant memories
@@ -689,6 +719,173 @@ paths:
           type: string
         context:
           $ref: "#/components/schemas/MemoryContext"
+    BulkMemorizeItem:
+      type: object
+      required: [content]
+      properties:
+        content:
+          type: string
+        source:
+          type: string
+        modality:
+          type: string
+          enum: [text, code, dialogue, observation]
+    BulkMemorizeRequest:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/BulkMemorizeItem"
+        default_source:
+          type: string
+        default_modality:
+          type: string
+          enum: [text, code, dialogue, observation]
+        domain_pack_id:
+          type: string
+        context:
+          $ref: "#/components/schemas/MemoryContext"
+        stop_on_error:
+          type: boolean
+          default: false
+    MutationEffect:
+      type: string
+      enum: [applied, no_op, rejected]
+    MutationCommitOutcome:
+      type: string
+      enum: [durable, degraded, not_committed, unknown_to_client]
+    MutationResultReceipt:
+      type: object
+      additionalProperties: true
+      properties:
+        effect:
+          $ref: "#/components/schemas/MutationEffect"
+        commit_outcome:
+          $ref: "#/components/schemas/MutationCommitOutcome"
+        reconciliation_required:
+          type: boolean
+        durability:
+          $ref: "#/components/schemas/MemorizeDurabilityState"
+    BulkItemDoneEvent:
+      type: object
+      required: [event, index, total, added_atoms]
+      properties:
+        event:
+          type: string
+          enum: [item_done]
+        index:
+          type: integer
+          format: uint64
+        total:
+          type: integer
+          format: uint64
+        added_atoms:
+          type: array
+          items:
+            type: string
+        error:
+          type: string
+          nullable: true
+        effect:
+          $ref: "#/components/schemas/MutationEffect"
+        commit_outcome:
+          $ref: "#/components/schemas/MutationCommitOutcome"
+        reconciliation_required:
+          type: boolean
+        durability:
+          allOf:
+            - $ref: "#/components/schemas/MemorizeDurabilityState"
+          nullable: true
+    BulkCompletedEvent:
+      type: object
+      required: [event, total, written_atoms, failed, elapsed_ms]
+      properties:
+        event:
+          type: string
+          enum: [completed]
+        total:
+          type: integer
+          format: uint64
+        written_atoms:
+          type: integer
+          format: uint64
+        failed:
+          type: integer
+          format: uint64
+        applied:
+          type: integer
+          format: uint64
+        no_op:
+          type: integer
+          format: uint64
+        rejected:
+          type: integer
+          format: uint64
+        degraded:
+          type: integer
+          format: uint64
+        unknown:
+          type: integer
+          format: uint64
+        elapsed_ms:
+          type: integer
+          format: uint64
+    BulkTerminalErrorEvent:
+      type: object
+      required: [event, code, message, terminal]
+      properties:
+        event:
+          type: string
+          enum: [error]
+        code:
+          type: string
+          enum: [bulk.worker_failure]
+        message:
+          type: string
+        terminal:
+          type: boolean
+          enum: [true]
+    MemorizeDurabilityState:
+      type: object
+      required:
+        - runtime_accepted
+        - indexed
+        - wal_committed
+        - warm_store_committed
+        - checkpointed
+        - persisted_atom_count
+        - persisted_edge_count
+      properties:
+        runtime_accepted:
+          type: boolean
+          description: True when the write is visible in the live in-process graph.
+        indexed:
+          type: boolean
+          description: True when the committed graph state was published to live indexes.
+        wal_committed:
+          type: boolean
+          description: True when the durable write stage committed with the graph batch.
+        warm_store_committed:
+          type: boolean
+          description: True when atoms, edges, and snapshot committed to durable storage.
+        checkpointed:
+          type: boolean
+          description: True when all required synchronous recovery and index checkpoints completed.
+        durability_error:
+          type: string
+          nullable: true
+          description: Present when a durability or checkpoint stage failed.
+        persisted_atom_count:
+          type: integer
+          format: uint64
+          description: Number of atoms committed to durable storage by this write.
+        persisted_edge_count:
+          type: integer
+          format: uint64
+          description: Number of edges committed to durable storage by this write.
     MemorizeResponse:
       type: object
       required: [added_atoms]
@@ -702,6 +899,24 @@ paths:
           format: uint64
         error:
           type: string
+        durability:
+          allOf:
+            - $ref: "#/components/schemas/MemorizeDurabilityState"
+          nullable: true
+          description: >
+            Durability receipt returned by current servers. Optional so clients remain
+            compatible with older servers that did not expose this field.
+        effect:
+          allOf:
+            - $ref: "#/components/schemas/MutationEffect"
+          nullable: true
+        commit_outcome:
+          allOf:
+            - $ref: "#/components/schemas/MutationCommitOutcome"
+          nullable: true
+        reconciliation_required:
+          type: boolean
+          nullable: true
     MemorizeEnvelopeResponse:
       type: object
       required: [ok, data, error]
@@ -727,7 +942,16 @@ paths:
           type: string
           description: Human-readable error detail.
         details:
-          description: Optional structured diagnostics for callers.
+          type: object
+          additionalProperties: true
+          properties:
+            component:
+              type: string
+            source_error:
+              type: string
+            mutation_result:
+              $ref: "#/components/schemas/MutationResultReceipt"
+          description: Optional structured diagnostics. Current mutation errors preserve the complete typed result in mutation_result.
           nullable: true
     RecallRequest:
       type: object
@@ -864,6 +1088,27 @@ paths:
           type: string
         replacement_atom:
           type: string
+        redaction_count:
+          type: integer
+          format: uint64
+        snapshot_version:
+          type: integer
+          format: uint64
+        durability:
+          allOf:
+            - $ref: "#/components/schemas/MemorizeDurabilityState"
+          nullable: true
+        effect:
+          allOf:
+            - $ref: "#/components/schemas/MutationEffect"
+          nullable: true
+        commit_outcome:
+          allOf:
+            - $ref: "#/components/schemas/MutationCommitOutcome"
+          nullable: true
+        reconciliation_required:
+          type: boolean
+          nullable: true
     CorrectEnvelopeResponse:
       type: object
       required: [ok, data, error]
@@ -998,6 +1243,23 @@ paths:
         exposure:
           type: string
           enum: [Normal, Quarantined, Sealed, Tombstoned]
+        payload_destroyed:
+          type: boolean
+        durability:
+          allOf:
+            - $ref: "#/components/schemas/MemorizeDurabilityState"
+          nullable: true
+        effect:
+          allOf:
+            - $ref: "#/components/schemas/MutationEffect"
+          nullable: true
+        commit_outcome:
+          allOf:
+            - $ref: "#/components/schemas/MutationCommitOutcome"
+          nullable: true
+        reconciliation_required:
+          type: boolean
+          nullable: true
     GovernanceEnvelopeResponse:
       type: object
       required: [ok, data, error]

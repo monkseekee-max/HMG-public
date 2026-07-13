@@ -164,47 +164,6 @@ Returns snapshot history for a specific atom.
 
 Returns full audit trail (correction + governance history).
 
-## Website Account Activation API
-
-These endpoints are served by the HMG website/account backend, not by the
-local Community Edition runtime. They are used by `hmg activate` and the
-browser account center to bind a local device to a purchased or assigned HMG
-account entitlement.
-
-Account activation responses use the HMG account envelope:
-
-```json
-{
-  "ok": true,
-  "data": {},
-  "error": null
-}
-```
-
-Error responses use the same shape with `ok: false` and an error object:
-
-```json
-{
-  "ok": false,
-  "data": null,
-  "error": {
-    "code": "activation.invalid_device_code",
-    "message": "device_code is invalid"
-  }
-}
-```
-
-| Method | Path | Auth | Purpose |
-|---|---|---|---|
-| `POST` | `/api/account/device-code` | none | Create a CLI/browser device code for local activation |
-| `POST` | `/api/account/device-code/poll` | none | Poll a device code until it is authorized, denied, expired, or blocked by device limits |
-| `POST` | `/api/account/device-code/authorize` | user JWT | Authorize a user code from the website account session |
-| `POST` | `/api/account/activations` | authorized device code | Issue a signed activation certificate for the local device |
-| `GET` | `/api/account/activations` | user JWT | List activation records for the current account |
-| `GET` | `/api/account/entitlements/current` | user JWT | Return current plan, features, quotas, region, and device status |
-| `GET` | `/api/account/devices` | user JWT | List currently bound devices |
-| `GET` | `/api/account/quotas` | user JWT | Return feature and quota limits plus usage counters |
-
 ## Scope (Branch-Aware Memory)
 
 HMG supports hierarchical scope for coding agents:

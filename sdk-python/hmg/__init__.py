@@ -12,6 +12,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field, asdict
 from typing import Any, Literal, TypeAlias
+from urllib import error as urllib_error
 from urllib import request
 import json
 
@@ -22,6 +23,10 @@ GovernanceAction = Literal["quarantine", "seal", "tombstone", "derive_lesson"]
 RecallViewMode = Literal["normal", "governance", "audit"]
 Modality = Literal["text", "code", "dialogue", "observation"]
 OutputFormat = Literal["compact_yaml", "json", "markdown", "summary"]
+MutationEffect = Literal["applied", "no_op", "rejected"]
+MutationCommitOutcome = Literal[
+    "durable", "degraded", "not_committed", "unknown_to_client"
+]
 
 
 # ---------------------------------------------------------------------------
@@ -189,11 +194,40 @@ class ApiError:
     details: dict | None = None
 
 
+class HMGApiError(Exception):
+    """Typed API error that preserves mutation receipts from non-2xx responses."""
+
+    def __init__(self, code: str, message: str, details: dict | None = None):
+        super().__init__(f"HMG API error: {code} — {message}")
+        self.code = code
+        self.message = message
+        self.details = details
+        self.mutation_result = (
+            details.get("mutation_result") if isinstance(details, dict) else None
+        )
+
+
+@dataclass
+class MemorizeDurabilityState:
+    runtime_accepted: bool = False
+    indexed: bool = False
+    wal_committed: bool = False
+    warm_store_committed: bool = False
+    checkpointed: bool = False
+    durability_error: str | None = None
+    persisted_atom_count: int = 0
+    persisted_edge_count: int = 0
+
+
 @dataclass
 class MemorizeResponse:
     added_atoms: list[str] = field(default_factory=list)
     snapshot_version: int | None = None
     error: str | None = None
+    durability: MemorizeDurabilityState | None = None
+    effect: MutationEffect | None = None
+    commit_outcome: MutationCommitOutcome | None = None
+    reconciliation_required: bool | None = None
 
 
 @dataclass
@@ -220,6 +254,12 @@ class CorrectResponse:
     success: bool
     message: str
     replacement_atom: str | None = None
+    redaction_count: int = 0
+    snapshot_version: int | None = None
+    durability: MemorizeDurabilityState | None = None
+    effect: MutationEffect | None = None
+    commit_outcome: MutationCommitOutcome | None = None
+    reconciliation_required: bool | None = None
 
 
 @dataclass
@@ -229,6 +269,12 @@ class GovernanceResponse:
     target_atom: str
     lesson_atom: str | None = None
     exposure: str | None = None
+    snapshot_version: int | None = None
+    payload_destroyed: bool = False
+    durability: MemorizeDurabilityState | None = None
+    effect: MutationEffect | None = None
+    commit_outcome: MutationCommitOutcome | None = None
+    reconciliation_required: bool | None = None
 
 
 @dataclass
@@ -286,6 +332,67 @@ def api_envelope_error(envelope: ApiEnvelopeDict) -> dict[str, Any] | None:
     return error if isinstance(error, dict) else None
 
 
+def _decode_uint(value: Any) -> int:
+    return value if isinstance(value, int) and not isinstance(value, bool) and value >= 0 else 0
+
+
+def _decode_memorize_durability(value: Any) -> MemorizeDurabilityState | None:
+    if not isinstance(value, dict):
+        return None
+    return MemorizeDurabilityState(
+        runtime_accepted=bool(value.get("runtime_accepted", False)),
+        indexed=bool(value.get("indexed", False)),
+        wal_committed=bool(value.get("wal_committed", False)),
+        warm_store_committed=bool(value.get("warm_store_committed", False)),
+        checkpointed=bool(value.get("checkpointed", False)),
+        durability_error=(
+            value.get("durability_error")
+            if isinstance(value.get("durability_error"), str)
+            else None
+        ),
+        persisted_atom_count=_decode_uint(value.get("persisted_atom_count")),
+        persisted_edge_count=_decode_uint(value.get("persisted_edge_count")),
+    )
+
+
+def _decode_memorize_response(value: Any) -> MemorizeResponse:
+    if not isinstance(value, dict):
+        return MemorizeResponse()
+    added_atoms = value.get("added_atoms")
+    return MemorizeResponse(
+        added_atoms=(
+            [str(atom_id) for atom_id in added_atoms]
+            if isinstance(added_atoms, list)
+            else []
+        ),
+        snapshot_version=(
+            value.get("snapshot_version")
+            if isinstance(value.get("snapshot_version"), int)
+            and not isinstance(value.get("snapshot_version"), bool)
+            and value.get("snapshot_version") >= 0
+            else None
+        ),
+        error=value.get("error") if isinstance(value.get("error"), str) else None,
+        durability=_decode_memorize_durability(value.get("durability")),
+        effect=(
+            value.get("effect")
+            if value.get("effect") in {"applied", "no_op", "rejected"}
+            else None
+        ),
+        commit_outcome=(
+            value.get("commit_outcome")
+            if value.get("commit_outcome")
+            in {"durable", "degraded", "not_committed", "unknown_to_client"}
+            else None
+        ),
+        reconciliation_required=(
+            value.get("reconciliation_required")
+            if isinstance(value.get("reconciliation_required"), bool)
+            else None
+        ),
+    )
+
+
 class HMGClient:
     """HTTP client for the HMG memory service.
 
@@ -309,15 +416,25 @@ class HMGClient:
 
         data = json.dumps(body).encode() if body else None
         req = request.Request(url, data=data, headers=headers, method=method)
-        with request.urlopen(req) as resp:
-            return json.loads(resp.read())
+        try:
+            with request.urlopen(req) as resp:
+                return json.loads(resp.read())
+        except urllib_error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            try:
+                decoded = json.loads(body)
+            except json.JSONDecodeError as decode_error:
+                raise exc from decode_error
+            if isinstance(decoded, dict):
+                return decoded
+            raise exc
 
     def memorize(self, content: str, **kwargs) -> MemorizeResponse:
         """Store a new memory atom."""
         req = MemorizeRequest(content=content, **kwargs)
         envelope = self._request("POST", "/api/memorize", _to_dict(req))
-        if envelope.get("data"):
-            return MemorizeResponse(**envelope["data"])
+        if isinstance(envelope.get("data"), dict):
+            return _decode_memorize_response(envelope["data"])
         raise _api_error(envelope)
 
     def recall(self, query: str, **kwargs) -> RecallResponse:
@@ -384,4 +501,8 @@ def _to_dict(obj: Any) -> dict:
 
 def _api_error(envelope: dict) -> Exception:
     error = envelope.get("error", {})
-    return Exception(f"HMG API error: {error.get('code', 'unknown')} — {error.get('message', 'no details')}")
+    return HMGApiError(
+        str(error.get("code", "unknown")),
+        str(error.get("message", "no details")),
+        error.get("details") if isinstance(error.get("details"), dict) else None,
+    )

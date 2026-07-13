@@ -6,6 +6,31 @@ For binary release notes, see [GitHub Releases](https://github.com/HMG-AI/HMG/re
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.7.6] - 2026-07-12
+
+Reliability and protocol-alignment release for coding-agent memory clients.
+
+### Added
+
+- Typed mutation effect, commit outcome, and reconciliation fields across the
+  supported HTTP, MCP, gRPC, Python, and TypeScript write surfaces.
+- Item-level mutation outcomes for streaming bulk memorize responses.
+- Expanded agent-integration guidance and public SDK examples.
+
+### Fixed
+
+- Governance and audit recall can once again reach quarantined records while
+  normal recall continues to exclude governed payloads.
+- Rejected, no-op, and unknown-to-client writes no longer present themselves as
+  confirmed durable success in daemon or MCP summaries.
+
+### Changed
+
+- Public protocol, SDK, Pi agent, manifest, badges, and release metadata now
+  track `1.7.6`.
+- Bulk operations are documented as item-atomic, not batch-atomic; no global
+  exactly-once guarantee is implied.
+
 ## [1.7.1] - 2026-06-30
 
 Release hardening for coding-agent memory integrations, external agent

@@ -1,7 +1,7 @@
 # hmg
 
 <p>
-  <img src="https://img.shields.io/badge/version-1.7.5-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.7.6-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-Apache--2.0-green.svg" alt="License">
   <img src="https://img.shields.io/badge/python-3.9%2B-blue.svg" alt="Python">
 </p>

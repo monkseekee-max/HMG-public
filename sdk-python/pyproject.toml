@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "hmg-sdk"
-version = "1.7.5"
+version = "1.7.6"
 description = "HMG Agent Memory SDK — Community Edition"
 readme = "README.md"
 license = "Apache-2.0"

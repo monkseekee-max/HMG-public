@@ -3,7 +3,7 @@
   "product": {
     "name": "HMG",
     "full_name": "Holographic Memory Graph",
-    "version": "1.7.5",
+    "version": "1.7.6",
     "release_channel": "stable",
     "tagline": "Agent memory that actually works"
   },
@@ -201,12 +201,12 @@
   "sdk": {
     "python": {
       "package": "hmg-sdk",
-      "version": "1.7.5",
+      "version": "1.7.6",
       "registry": "https://pypi.org/project/hmg-sdk/"
     },
     "typescript": {
       "package": "@hmg_ai/sdk-ts",
-      "version": "1.7.5",
+      "version": "1.7.6",
       "registry": "https://www.npmjs.com/package/@hmg_ai/sdk-ts"
     }
   },

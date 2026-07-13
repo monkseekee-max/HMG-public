@@ -28,17 +28,17 @@ Ou téléchargez directement depuis [GitHub Releases](https://github.com/HMG-AI/
 
 ```bash
 # Linux x86_64
-curl -L https://github.com/HMG-AI/HMG-public/releases/latest/download/hmg-1.7.1-x86_64-unknown-linux-gnu.tar.gz | tar -xzf - -C ~/.local/bin/
+curl -L https://github.com/HMG-AI/HMG-public/releases/latest/download/hmg-1.7.6-x86_64-unknown-linux-gnu.tar.gz | tar -xzf - -C ~/.local/bin/
 
 # macOS Apple Silicon
-curl -L https://github.com/HMG-AI/HMG-public/releases/latest/download/hmg-1.7.1-aarch64-apple-darwin.tar.gz | tar -xzf - -C ~/.local/bin/
+curl -L https://github.com/HMG-AI/HMG-public/releases/latest/download/hmg-1.7.6-aarch64-apple-darwin.tar.gz | tar -xzf - -C ~/.local/bin/
 ```
 
 ## Vérification
 
 ```bash
 hmg --version
-# hmg 1.7.1-community
+# hmg 1.7.6-community
 ```
 
 ## Démarrer le service de mémoire
