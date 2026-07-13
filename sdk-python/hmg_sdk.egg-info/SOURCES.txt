@@ -1,7 +1,0 @@
-README.md
-pyproject.toml
-hmg/__init__.py
-hmg_sdk.egg-info/PKG-INFO
-hmg_sdk.egg-info/SOURCES.txt
-hmg_sdk.egg-info/dependency_links.txt
-hmg_sdk.egg-info/top_level.txt

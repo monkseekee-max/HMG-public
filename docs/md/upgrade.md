@@ -51,7 +51,7 @@ hmg daemon restart
 
 ```bash
 hmg --version
-# hmg 1.7.1-developer
+# hmg 1.7.6-developer
 
 hmg doctor
 # ✓ License: Developer (valid)

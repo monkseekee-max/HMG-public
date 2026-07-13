@@ -11,7 +11,7 @@ This template provides a starting point for contributing a VS Code adapter to HM
 1. Copy this template directory.
 2. Edit `adapter.toml` with your agent's details.
 3. Run `hmg init --agent <id>` to verify the adapter works.
-4. Submit a PR to `crates/hmg-server/src/hmg_cli/integrations/`.
+4. Submit a PR adding the completed template under `adapters/templates/<agent-id>/`.
 
 ## Adapter Metadata Format
 

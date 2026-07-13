@@ -16,6 +16,47 @@ use serde::{Deserialize, Serialize};
 
 use crate::MemoryContextView;
 
+/// Public durability receipt for a completed memorize write.
+///
+/// Every field has a serde default so newer clients can still decode receipts
+/// produced by an older server that exposed only a subset of the state.
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MemorizeDurabilityState {
+    #[serde(default)]
+    pub runtime_accepted: bool,
+    #[serde(default)]
+    pub indexed: bool,
+    #[serde(default)]
+    pub wal_committed: bool,
+    #[serde(default)]
+    pub warm_store_committed: bool,
+    #[serde(default)]
+    pub checkpointed: bool,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub durability_error: Option<String>,
+    #[serde(default)]
+    pub persisted_atom_count: u64,
+    #[serde(default)]
+    pub persisted_edge_count: u64,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MutationEffect {
+    Applied,
+    NoOp,
+    Rejected,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum MutationCommitOutcome {
+    Durable,
+    Degraded,
+    NotCommitted,
+    UnknownToClient,
+}
+
 /// A single atom to ingest as part of a bulk request.
 ///
 /// `content` is the only required field; `source` / `modality` may be set per
@@ -81,6 +122,15 @@ pub enum BulkProgressEvent {
         total: usize,
         added_atoms: Vec<String>,
         error: Option<String>,
+        /// Per-item receipt. Optional for compatibility with older servers.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        durability: Option<MemorizeDurabilityState>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        effect: Option<MutationEffect>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        commit_outcome: Option<MutationCommitOutcome>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        reconciliation_required: Option<bool>,
     },
     /// Running aggregate progress after each item, for progress-bar / ETA UI.
     Progress {
@@ -94,10 +144,37 @@ pub enum BulkProgressEvent {
         total: usize,
         written_atoms: usize,
         failed: usize,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        applied: Option<usize>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        no_op: Option<usize>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        rejected: Option<usize>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        degraded: Option<usize>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        unknown: Option<usize>,
         elapsed_ms: u64,
     },
     /// Terminal failure of item `index` when `stop_on_error == true`.
-    Failed { index: usize, error: String },
+    Failed {
+        index: usize,
+        error: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        durability: Option<MemorizeDurabilityState>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        effect: Option<MutationEffect>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        commit_outcome: Option<MutationCommitOutcome>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        reconciliation_required: Option<bool>,
+    },
+    /// Terminal background worker failure; no `completed` event follows.
+    Error {
+        code: String,
+        message: String,
+        terminal: bool,
+    },
 }
 
 #[cfg(test)]
@@ -161,11 +238,73 @@ mod tests {
             total: 5,
             added_atoms: vec![],
             error: Some("admission rejected".into()),
+            durability: None,
+            effect: Some(MutationEffect::Rejected),
+            commit_outcome: Some(MutationCommitOutcome::NotCommitted),
+            reconciliation_required: Some(false),
         };
         let s = serde_json::to_string(&evt).unwrap();
         assert!(s.contains("\"event\":\"item_done\""));
         assert!(s.contains("\"admission rejected\""));
         let back: BulkProgressEvent = serde_json::from_str(&s).unwrap();
         assert_eq!(evt, back);
+    }
+
+    #[test]
+    fn item_done_durability_is_optional_and_backward_compatible() {
+        let legacy = r#"{
+            "event": "item_done",
+            "index": 0,
+            "total": 1,
+            "added_atoms": ["01HMG"],
+            "error": null
+        }"#;
+        let parsed: BulkProgressEvent = serde_json::from_str(legacy).unwrap();
+        assert!(matches!(
+            parsed,
+            BulkProgressEvent::ItemDone {
+                durability: None,
+                effect: None,
+                commit_outcome: None,
+                reconciliation_required: None,
+                ..
+            }
+        ));
+
+        let current = BulkProgressEvent::ItemDone {
+            index: 0,
+            total: 1,
+            added_atoms: vec!["01HMG".into()],
+            error: None,
+            durability: Some(MemorizeDurabilityState {
+                runtime_accepted: true,
+                indexed: true,
+                wal_committed: true,
+                warm_store_committed: true,
+                checkpointed: false,
+                durability_error: Some("checkpoint.failure".into()),
+                persisted_atom_count: 1,
+                persisted_edge_count: 2,
+            }),
+            effect: Some(MutationEffect::Applied),
+            commit_outcome: Some(MutationCommitOutcome::Degraded),
+            reconciliation_required: Some(false),
+        };
+        let serialized = serde_json::to_string(&current).unwrap();
+        let round_trip: BulkProgressEvent = serde_json::from_str(&serialized).unwrap();
+        assert_eq!(round_trip, current);
+    }
+
+    #[test]
+    fn terminal_worker_error_is_machine_readable() {
+        let event = BulkProgressEvent::Error {
+            code: "bulk.worker_failure".into(),
+            message: "worker stopped".into(),
+            terminal: true,
+        };
+        let value = serde_json::to_value(event).unwrap();
+        assert_eq!(value["event"], "error");
+        assert_eq!(value["code"], "bulk.worker_failure");
+        assert_eq!(value["terminal"], true);
     }
 }

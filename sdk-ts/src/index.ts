@@ -9,6 +9,14 @@
  * see the Developer/Enterprise Edition.
  */
 
+declare const require: (name: string) => any;
+declare const __dirname: string;
+declare const process: {
+  cwd(): string;
+  env: Record<string, string | undefined>;
+  platform: string;
+};
+
 // ---------------------------------------------------------------------------
 // Context types
 // ---------------------------------------------------------------------------
@@ -165,7 +173,43 @@ export interface BulkMemorizeRequest {
 export interface ApiError {
   code: string;
   message: string;
-  details?: unknown;
+  details?: MutationErrorDetails | Record<string, unknown> | null;
+}
+
+export type MutationEffect = "applied" | "no_op" | "rejected";
+export type MutationCommitOutcome =
+  | "durable"
+  | "degraded"
+  | "not_committed"
+  | "unknown_to_client";
+
+export interface MutationErrorDetails {
+  component?: string;
+  source_error?: string;
+  mutation_result?: {
+    effect: MutationEffect;
+    commit_outcome: MutationCommitOutcome;
+    reconciliation_required: boolean;
+    durability: MemorizeDurabilityState;
+    [key: string]: unknown;
+  };
+  [key: string]: unknown;
+}
+
+export class HMGApiError extends Error {
+  readonly code: string;
+  readonly details?: MutationErrorDetails | Record<string, unknown> | null;
+  readonly mutationResult?: MutationErrorDetails["mutation_result"];
+
+  constructor(error?: ApiError | null) {
+    const code = error?.code ?? "unknown";
+    const message = error?.message ?? "no details";
+    super(`HMG API error: ${code} — ${message}`);
+    this.name = "HMGApiError";
+    this.code = code;
+    this.details = error?.details;
+    this.mutationResult = (error?.details as MutationErrorDetails | undefined)?.mutation_result;
+  }
 }
 
 export interface ApiEnvelope<T> {
@@ -174,10 +218,26 @@ export interface ApiEnvelope<T> {
   error: ApiError | null;
 }
 
+export interface MemorizeDurabilityState {
+  runtime_accepted: boolean;
+  indexed: boolean;
+  wal_committed: boolean;
+  warm_store_committed: boolean;
+  checkpointed: boolean;
+  durability_error?: string | null;
+  persisted_atom_count: number;
+  persisted_edge_count: number;
+}
+
 export interface MemorizeResponse {
   added_atoms: string[];
   snapshot_version?: number;
   error?: string;
+  /** Optional for compatibility with HMG servers predating durability receipts. */
+  durability?: MemorizeDurabilityState | null;
+  effect?: MutationEffect;
+  commit_outcome?: MutationCommitOutcome;
+  reconciliation_required?: boolean;
 }
 
 export interface RecalledAtom {
@@ -201,6 +261,12 @@ export interface CorrectResponse {
   success: boolean;
   message: string;
   replacement_atom?: string;
+  redaction_count?: number;
+  snapshot_version?: number | null;
+  durability?: MemorizeDurabilityState | null;
+  effect?: MutationEffect;
+  commit_outcome?: MutationCommitOutcome;
+  reconciliation_required?: boolean;
 }
 
 export interface GovernanceResponse {
@@ -209,6 +275,12 @@ export interface GovernanceResponse {
   target_atom: string;
   lesson_atom?: string;
   exposure?: string;
+  snapshot_version?: number | null;
+  payload_destroyed?: boolean;
+  durability?: MemorizeDurabilityState | null;
+  effect?: MutationEffect;
+  commit_outcome?: MutationCommitOutcome;
+  reconciliation_required?: boolean;
 }
 
 export interface AtomHistory {
@@ -239,6 +311,174 @@ export interface AgentBriefResponse {
   next_steps: string[];
 }
 
+// ---------------------------------------------------------------------------
+// Embedded in-process SDK
+// ---------------------------------------------------------------------------
+
+export interface EmbeddedMemoryOpenOptions {
+  userId?: string;
+  libraryPath?: string;
+}
+
+export interface EmbeddedMemoryCallOptions {
+  userId?: string;
+}
+
+export interface EmbeddedMemorySearchOptions extends EmbeddedMemoryCallOptions {
+  limit?: number;
+}
+
+export interface EmbeddedMemoryAddResult {
+  atom_ids: string[];
+  matched_atoms: [string, string][];
+  snapshot_version?: number;
+  durably_committed: boolean;
+  warning?: string | null;
+  execution_mode: "embedded";
+  transport: "in_process";
+}
+
+export interface EmbeddedMemorySearchHit {
+  id: string;
+  text?: string;
+  score: number;
+  primary: boolean;
+}
+
+export interface EmbeddedMemorySearchResult {
+  narrative: string;
+  hits: EmbeddedMemorySearchHit[];
+  knowledge_gaps: string[];
+  candidates_considered: number;
+  execution_mode: "embedded";
+  transport: "in_process";
+}
+
+type EmbeddedNativeHandle = object;
+
+interface EmbeddedNativeAddon {
+  local(path: string, userId: string | null, libraryPath: string): EmbeddedNativeHandle;
+  temporary(userId: string | null, libraryPath: string): EmbeddedNativeHandle;
+  add(handle: EmbeddedNativeHandle, content: string, userId: string | null): string;
+  search(handle: EmbeddedNativeHandle, query: string, userId: string | null, limit: number): string;
+  close(handle: EmbeddedNativeHandle): void;
+}
+
+/**
+ * In-process HMG memory for Node applications.
+ *
+ * This path loads the native `hmg-sdk` embedded library in the current Node
+ * process. It does not start `hmg`, does not auto-start a daemon, and does not
+ * use HTTP transport.
+ */
+export class EmbeddedMemory {
+  private constructor(
+    private native: EmbeddedNativeAddon,
+    private handle: EmbeddedNativeHandle | null,
+    readonly mode: "temporary" | "persistent",
+    readonly userId?: string,
+  ) {}
+
+  static local(path: string, options: EmbeddedMemoryOpenOptions = {}): EmbeddedMemory {
+    const native = loadEmbeddedNative();
+    const libraryPath = resolveEmbeddedLibraryPath(options.libraryPath);
+    return new EmbeddedMemory(
+      native,
+      native.local(path, options.userId ?? null, libraryPath),
+      "persistent",
+      options.userId,
+    );
+  }
+
+  static temporary(options: EmbeddedMemoryOpenOptions = {}): EmbeddedMemory {
+    const native = loadEmbeddedNative();
+    const libraryPath = resolveEmbeddedLibraryPath(options.libraryPath);
+    return new EmbeddedMemory(
+      native,
+      native.temporary(options.userId ?? null, libraryPath),
+      "temporary",
+      options.userId,
+    );
+  }
+
+  add(content: string, options: EmbeddedMemoryCallOptions = {}): EmbeddedMemoryAddResult {
+    return parseEmbeddedPayload<EmbeddedMemoryAddResult>(
+      this.native.add(this.requireOpen(), content, options.userId ?? null),
+    );
+  }
+
+  search(query: string, options: EmbeddedMemorySearchOptions = {}): EmbeddedMemorySearchResult {
+    return parseEmbeddedPayload<EmbeddedMemorySearchResult>(
+      this.native.search(this.requireOpen(), query, options.userId ?? null, options.limit ?? 10),
+    );
+  }
+
+  close(): void {
+    const handle = this.handle;
+    this.handle = null;
+    if (handle) {
+      this.native.close(handle);
+    }
+  }
+
+  private requireOpen(): EmbeddedNativeHandle {
+    if (!this.handle) {
+      throw new Error("embedded HMG memory is closed");
+    }
+    return this.handle;
+  }
+}
+
+export const Memory = EmbeddedMemory;
+
+let cachedEmbeddedNative: EmbeddedNativeAddon | undefined;
+
+function loadEmbeddedNative(): EmbeddedNativeAddon {
+  if (!cachedEmbeddedNative) {
+    const path = require("node:path");
+    const addonPath = path.resolve(__dirname, "../native/hmg_embedded.node");
+    cachedEmbeddedNative = require(addonPath) as EmbeddedNativeAddon;
+  }
+  return cachedEmbeddedNative;
+}
+
+function resolveEmbeddedLibraryPath(libraryPath?: string): string {
+  const fs = require("node:fs");
+  const path = require("node:path");
+  const libraryName =
+    process.platform === "darwin"
+      ? "libhmg_sdk.dylib"
+      : process.platform === "win32"
+        ? "hmg_sdk.dll"
+        : "libhmg_sdk.so";
+  const candidates = [
+    libraryPath,
+    process.env.HMG_EMBEDDED_LIBRARY,
+    path.resolve(__dirname, "../../../target/debug", libraryName),
+    path.resolve(__dirname, "../../../target/release", libraryName),
+    path.resolve(process.cwd(), "target/debug", libraryName),
+    path.resolve(process.cwd(), "target/release", libraryName),
+  ].filter((item): item is string => Boolean(item));
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) {
+      return candidate;
+    }
+  }
+  throw new Error(`embedded HMG native library not found; tried ${candidates.join(", ")}`);
+}
+
+function parseEmbeddedPayload<T>(payload: string): T {
+  const parsed = JSON.parse(payload) as {
+    ok?: boolean;
+    data?: T;
+    error?: { message?: string };
+  };
+  if (!parsed.ok) {
+    throw new Error(parsed.error?.message ?? "embedded HMG call failed");
+  }
+  return parsed.data as T;
+}
+
 /**
  * One streamed progress event from `bulkMemorize`. Variant tag is `event`.
  * Normal run order: `started` → (`item_done`, `progress`)* → `completed`.
@@ -252,6 +492,11 @@ export type BulkProgressEvent =
       total: number;
       added_atoms: string[];
       error: string | null;
+      /** Optional because older servers emitted item_done without a receipt. */
+      durability?: MemorizeDurabilityState | null;
+      effect?: MutationEffect;
+      commit_outcome?: MutationCommitOutcome;
+      reconciliation_required?: boolean;
     }
   | {
       event: "progress";
@@ -265,14 +510,33 @@ export type BulkProgressEvent =
       total: number;
       written_atoms: number;
       failed: number;
+      applied?: number;
+      no_op?: number;
+      rejected?: number;
+      degraded?: number;
+      unknown?: number;
       elapsed_ms: number;
     }
-  | { event: "failed"; index: number; error: string };
+  | {
+      event: "failed";
+      index: number;
+      error: string;
+      effect?: MutationEffect;
+      commit_outcome?: MutationCommitOutcome;
+      reconciliation_required?: boolean;
+      durability?: MemorizeDurabilityState | null;
+    }
+  | { event: "error"; code: "bulk.worker_failure"; message: string; terminal: true };
 
 export interface BulkMemorizeSummary {
   total: number;
   written_atoms: number;
   failed: number;
+  applied?: number;
+  no_op?: number;
+  rejected?: number;
+  degraded?: number;
+  unknown?: number;
   elapsed_ms: number;
 }
 
@@ -328,25 +592,25 @@ export class HMGClient {
   async memorize(req: MemorizeRequest): Promise<MemorizeResponse> {
     const envelope = await this.request<MemorizeResponse>("POST", "/api/memorize", req);
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async recall(req: RecallRequest): Promise<RecallResponse> {
     const envelope = await this.request<RecallResponse>("POST", "/api/recall", req);
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async recallView(req: RecallViewRequest): Promise<RecallResponse> {
     const envelope = await this.request<RecallResponse>("POST", "/api/recall_view", req);
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async correct(req: CorrectRequest): Promise<CorrectResponse> {
     const envelope = await this.request<CorrectResponse>("POST", "/api/correct", req);
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async govern(req: GovernanceRequest): Promise<GovernanceResponse> {
@@ -356,19 +620,19 @@ export class HMGClient {
       req,
     );
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async history(atomId: string): Promise<AtomHistory> {
     const envelope = await this.request<AtomHistory>("GET", `/api/atom/${atomId}/history`);
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async stats(): Promise<StatsResponse> {
     const envelope = await this.request<StatsResponse>("GET", "/api/stats");
     if (envelope.data) return envelope.data;
-    throw new Error(apiErrorMessage(envelope));
+    throw apiError(envelope);
   }
 
   async graphExport(): Promise<Record<string, unknown>> {
@@ -429,9 +693,8 @@ export class HMGClient {
   }
 }
 
-function apiErrorMessage(envelope: ApiEnvelope<unknown>): string {
-  const e = envelope.error;
-  return `HMG API error: ${e?.code ?? "unknown"} — ${e?.message ?? "no details"}`;
+function apiError(envelope: ApiEnvelope<unknown>): HMGApiError {
+  return new HMGApiError(envelope.error);
 }
 
 /**
@@ -470,11 +733,19 @@ async function consumeBulkSse(
       const evt = parseSseFrame(raw);
       if (evt) {
         onEvent?.(evt);
+        if (evt.event === "error") {
+          throw new Error(`HMG bulk memorize worker failed: ${evt.code} — ${evt.message}`);
+        }
         if (evt.event === "completed") {
           summary = {
             total: evt.total,
             written_atoms: evt.written_atoms,
             failed: evt.failed,
+            applied: evt.applied,
+            no_op: evt.no_op,
+            rejected: evt.rejected,
+            degraded: evt.degraded,
+            unknown: evt.unknown,
             elapsed_ms: evt.elapsed_ms,
           };
         }

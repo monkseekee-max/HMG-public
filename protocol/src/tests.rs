@@ -1,14 +1,14 @@
-//! Protocol sync tests — ensure export/protocol types match internal crates.
+//! Protocol sync tests — ensure public DTOs stay aligned with the service contract.
 //!
 //! These tests verify that the public DTO types in export/protocol/ stay
-//! in sync with the internal types in crates/hmg-core/ and crates/hmg-llm/.
+//! in sync with the corresponding wire shapes exposed by the service.
 //!
 //! Run: cargo test -p hmg-protocol protocol_sync
 
 // NOTE: These tests run inside the export/protocol crate which is standalone.
 // They work by re-declaring the expected wire shapes and checking enum variants
-// match. For deep field-level sync, the monorepo CI runs a separate check that
-// imports both hmg-protocol and hmg-core.
+// match. Release CI runs a separate field-level conformance check against the
+// service implementation.
 
 /// All CorrectionAction variants must be representable as wire strings.
 #[test]
