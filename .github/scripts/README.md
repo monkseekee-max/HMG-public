@@ -20,7 +20,7 @@ The publisher requires exactly these signed trailers:
 
 Any partial, duplicate, or unknown `HMG-*` trailer set fails closed.
 
-The protected-main commit tree and all ten release assets are verified against
+The protected-main commit tree and all 17 release assets are verified against
 the Ed25519 statement before any repository write. Staging assets are read by
 captured asset ID from the deterministic
 `hmg-public-staging-${SOURCE_TAG}-${SOURCE_SHA}` draft/prerelease. The final tag
@@ -28,6 +28,11 @@ is created once as a lightweight tag at the merged promotion commit and is
 never moved or deleted. A separate final draft is byte-for-byte rechecked,
 published as latest, and required to report `immutable: true` before staging
 cleanup is attempted.
+
+The exact set is the six CLI archives, six desktop installers,
+`SHA256SUMS.txt`, `HMG-Desktop-SHA256SUMS.txt`, both installer scripts, and
+`version.json`. Each checksum manifest must use canonical GNU `sha256sum`
+format and cover exactly its corresponding six packages.
 
 Interrupted uploads in GitHub's `starter` state are repaired only by deleting
 the captured incomplete asset ID after a trusted local copy has passed the
