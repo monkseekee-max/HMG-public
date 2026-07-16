@@ -26,6 +26,31 @@ api_json() {
     "$@"
 }
 
+download_asset() {
+  local endpoint="$1"
+  local output_file="$2"
+  local partial_file="${output_file}.partial"
+  local attempt
+
+  for attempt in 1 2 3 4 5; do
+    rm -f "${partial_file}"
+    if gh api \
+      -H 'Accept: application/octet-stream' \
+      -H "X-GitHub-Api-Version: ${api_version}" \
+      "${endpoint}" > "${partial_file}"; then
+      mv -- "${partial_file}" "${output_file}"
+      return 0
+    fi
+    if ((attempt < 5)); then
+      sleep "${attempt}"
+    fi
+  done
+
+  rm -f "${partial_file}"
+  echo "Failed to download release asset after ${attempt} attempts: ${endpoint}" >&2
+  return 1
+}
+
 list_releases() {
   api_json --paginate \
     "repos/${target_repository}/releases?per_page=100" \
@@ -237,10 +262,9 @@ download_assets_by_id() {
         '.assets[] | select(.name == $name) | (.digest // "")' \
         "${release_file}"
     )"
-    api_json \
-      -H 'Accept: application/octet-stream' \
+    download_asset \
       "repos/${target_repository}/releases/assets/${asset_id}" \
-      > "${output_dir}/${asset_name}"
+      "${output_dir}/${asset_name}"
     if [[ "${asset_state}" == 'uploaded' && \
           "$(stat -c '%s' "${output_dir}/${asset_name}")" != "${expected_size}" ]]; then
       echo "Downloaded asset size changed for ${asset_name}." >&2
@@ -873,10 +897,9 @@ while IFS= read -r asset_name; do
       "${final_draft}"
   )"
   existing_asset="${RUNNER_TEMP}/existing-final-${existing_asset_id}"
-  api_json \
-    -H 'Accept: application/octet-stream' \
+  download_asset \
     "repos/${target_repository}/releases/assets/${existing_asset_id}" \
-    > "${existing_asset}"
+    "${existing_asset}"
   if ! cmp -s "${staging_asset_dir}/${asset_name}" "${existing_asset}"; then
     echo "Existing final draft asset conflicts with signed bytes: ${asset_name}." >&2
     exit 2
