@@ -3,8 +3,8 @@
 
 /.github/ @HMG-AI/docs-maintainers @HMG-AI/release-managers
 /.github/actionlint.yaml @HMG-AI/release-managers
-/.github/provenance-keys/ @HMG-AI/security-managers
-/.github/scripts/ @HMG-AI/security-managers @HMG-AI/release-managers
+/.github/provenance-keys/ @HMG-AI/release-managers
+/.github/scripts/ @HMG-AI/release-managers
 /.github/workflows/ @HMG-AI/release-managers
 /.github/CODEOWNERS @HMG-AI/release-managers
 /VERSION @HMG-AI/release-managers
