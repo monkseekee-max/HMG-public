@@ -86,6 +86,46 @@ if [[ -z "${publisher_asset_function}" ]]; then
 fi
 eval "${publisher_asset_function}"
 
+publisher_download_asset_function="$(
+  sed -n '/^download_asset() {$/,/^}$/p' "${publisher}"
+)"
+if [[ -z "${publisher_download_asset_function}" ]]; then
+  echo 'Retrying binary asset download helper is missing.' >&2
+  exit 1
+fi
+
+api_version='fixture-version'
+capture_file="$(mktemp)"
+asset_file="$(mktemp)"
+attempt_file="$(mktemp)"
+trap 'rm -f "${capture_file}" "${asset_file}" "${asset_file}.partial" "${attempt_file}"' EXIT
+gh() {
+  local attempt
+  attempt="$(cat "${attempt_file}")"
+  attempt="$((attempt + 1))"
+  printf '%s' "${attempt}" > "${attempt_file}"
+  printf '%s\n' "$@" > "${capture_file}"
+  if ((attempt == 1)); then
+    printf 'partial-bytes'
+    return 1
+  fi
+  printf 'fixture-binary-bytes'
+}
+sleep() {
+  :
+}
+printf '0' > "${attempt_file}"
+eval "${publisher_download_asset_function}"
+download_asset 'repos/HMG-AI/HMG-public/releases/assets/123' "${asset_file}"
+grep -Fxq 'Accept: application/octet-stream' "${capture_file}"
+grep -Fxq 'X-GitHub-Api-Version: fixture-version' "${capture_file}"
+if grep -Fq 'Accept: application/vnd.github+json' "${capture_file}"; then
+  echo 'Binary asset download unexpectedly requested JSON metadata.' >&2
+  exit 1
+fi
+grep -Fxq 'fixture-binary-bytes' "${asset_file}"
+grep -Fxq '2' "${attempt_file}"
+
 write_frozen_release_assets() {
   printf '%s\n' \
     HMG-Desktop-1.7.7-aarch64-setup.exe \
