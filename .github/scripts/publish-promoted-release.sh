@@ -9,6 +9,7 @@ readonly target_branch='main'
 readonly expected_key_id='ed25519-spki-sha256-10a79fee35f78fbe9542c7a9b639e564dd6c99c7068c7fb3b230084dca670fe2'
 readonly expected_key_fingerprint='10a79fee35f78fbe9542c7a9b639e564dd6c99c7068c7fb3b230084dca670fe2'
 readonly public_key_path=".github/provenance-keys/${expected_key_id}.pem"
+readonly expected_asset_count=17
 
 if [[ -z "${PROMOTION_WORKTREE:-}" || \
       "${PROMOTION_WORKTREE}" != /* || \
@@ -77,6 +78,13 @@ write_expected_assets() {
   local version="$1"
   local output_file="$2"
   printf '%s\n' \
+    "HMG-Desktop-${version}-aarch64-setup.exe" \
+    "HMG-Desktop-${version}-aarch64.dmg" \
+    "HMG-Desktop-${version}-x86_64-setup.exe" \
+    "HMG-Desktop-${version}-x86_64.AppImage" \
+    "HMG-Desktop-${version}-x86_64.deb" \
+    "HMG-Desktop-${version}-x86_64.dmg" \
+    HMG-Desktop-SHA256SUMS.txt \
     SHA256SUMS.txt \
     "hmg-${version}-aarch64-apple-darwin.tar.gz" \
     "hmg-${version}-aarch64-pc-windows-msvc.zip" \
@@ -123,7 +131,8 @@ validate_release_asset_metadata() {
   fi
 
   jq -e \
-    --argjson allow_incomplete "${allow_incomplete}" '
+    --argjson allow_incomplete "${allow_incomplete}" \
+    --argjson expected_asset_count "${expected_asset_count}" '
       (.assets | map(.name) | length) == (.assets | map(.name) | unique | length) and
       all(.assets[];
         (.id | type == "number") and
@@ -132,7 +141,7 @@ validate_release_asset_metadata() {
         .state == "uploaded" and
         (.name | type == "string")
       ) and
-      ($allow_incomplete or (.assets | length) == 10)
+      ($allow_incomplete or (.assets | length) == $expected_asset_count)
     ' "${release_file}" >/dev/null
 }
 
@@ -157,7 +166,8 @@ validate_recoverable_asset_metadata() {
   fi
 
   jq -e \
-    --argjson allow_missing "${allow_missing}" '
+    --argjson allow_missing "${allow_missing}" \
+    --argjson expected_asset_count "${expected_asset_count}" '
       (.assets | map(.name) | length) == (.assets | map(.name) | unique | length) and
       all(.assets[];
         (.id | type == "number") and
@@ -167,7 +177,7 @@ validate_recoverable_asset_metadata() {
         (if .state == "uploaded" then .size > 0 else true end) and
         (.name | type == "string")
       ) and
-      ($allow_missing or (.assets | length) == 10)
+      ($allow_missing or (.assets | length) == $expected_asset_count)
     ' "${release_file}" >/dev/null
 }
 
@@ -250,18 +260,22 @@ verify_local_asset_set() {
   local expected_assets_file="$2"
   local expected_digest="$3"
   local source_tag="$4"
-  local output_manifest="$5"
+  local source_sha="$5"
+  local output_manifest="$6"
   local version="${source_tag#v}"
   local actual_assets="${output_manifest}.names"
   local expected_packages="${output_manifest}.packages"
   local checksummed_packages="${output_manifest}.checksummed"
+  local expected_desktop_packages="${output_manifest}.desktop-packages"
+  local checksummed_desktop_packages="${output_manifest}.desktop-checksummed"
   local checksum_file="${asset_dir}/SHA256SUMS.txt"
+  local desktop_checksum_file="${asset_dir}/HMG-Desktop-SHA256SUMS.txt"
   local entry_count last_byte computed_digest asset_name asset_digest
   local -r checksum_line_pattern='^[0-9a-f]{64}  ([A-Za-z0-9._-]+)$'
 
   entry_count="$(find "${asset_dir}" -mindepth 1 -maxdepth 1 | wc -l)"
-  if ((entry_count != 10)); then
-    echo 'Release asset directory must contain exactly 10 entries.' >&2
+  if ((entry_count != expected_asset_count)); then
+    echo "Release asset directory must contain exactly ${expected_asset_count} entries." >&2
     return 1
   fi
   find "${asset_dir}" -mindepth 1 -maxdepth 1 -type f -printf '%f\n' \
@@ -276,6 +290,15 @@ verify_local_asset_set() {
     "hmg-${version}-x86_64-pc-windows-msvc.zip" \
     "hmg-${version}-x86_64-unknown-linux-gnu.tar.gz" \
     | LC_ALL=C sort > "${expected_packages}"
+
+  printf '%s\n' \
+    "HMG-Desktop-${version}-aarch64-setup.exe" \
+    "HMG-Desktop-${version}-aarch64.dmg" \
+    "HMG-Desktop-${version}-x86_64-setup.exe" \
+    "HMG-Desktop-${version}-x86_64.AppImage" \
+    "HMG-Desktop-${version}-x86_64.deb" \
+    "HMG-Desktop-${version}-x86_64.dmg" \
+    | LC_ALL=C sort > "${expected_desktop_packages}"
 
   last_byte="$(tail -c 1 "${checksum_file}" | od -An -t u1 | tr -d '[:space:]')"
   if [[ "${last_byte}" != '10' ]]; then
@@ -302,32 +325,53 @@ verify_local_asset_set() {
     sha256sum --strict --check SHA256SUMS.txt
   )
 
-  jq -e -s --arg tag "${source_tag}" --arg version "${version}" '
+  last_byte="$(tail -c 1 "${desktop_checksum_file}" | od -An -t u1 | tr -d '[:space:]')"
+  if [[ "${last_byte}" != '10' ]]; then
+    echo 'HMG-Desktop-SHA256SUMS.txt must end with one newline.' >&2
+    return 1
+  fi
+  mapfile -t desktop_checksum_lines < "${desktop_checksum_file}"
+  if ((${#desktop_checksum_lines[@]} != 6)); then
+    echo 'HMG-Desktop-SHA256SUMS.txt must contain exactly six desktop package checksums.' >&2
+    return 1
+  fi
+  : > "${checksummed_desktop_packages}"
+  for checksum_line in "${desktop_checksum_lines[@]}"; do
+    if [[ ! "${checksum_line}" =~ ${checksum_line_pattern} ]]; then
+      echo 'HMG-Desktop-SHA256SUMS.txt is not canonical GNU sha256sum format.' >&2
+      return 1
+    fi
+    printf '%s\n' "${BASH_REMATCH[1]}" >> "${checksummed_desktop_packages}"
+  done
+  LC_ALL=C sort -o "${checksummed_desktop_packages}" "${checksummed_desktop_packages}"
+  diff -u "${expected_desktop_packages}" "${checksummed_desktop_packages}"
+  (
+    cd "${asset_dir}"
+    sha256sum --strict --check HMG-Desktop-SHA256SUMS.txt
+  )
+
+  jq -e -s \
+    --arg tag "${source_tag}" \
+    --arg version "${version}" \
+    --arg source_sha "${source_sha}" '
     length == 1 and
     (.[0] | type == "object") and
     (.[0] | keys | sort) == ([
       "channel",
       "manifest_version",
-      "message",
-      "released_at",
-      "severity",
       "sha256sums_url",
+      "source_sha",
       "tag",
-      "title",
       "update_command",
       "version"
     ] | sort) and
     .[0].manifest_version == 1 and
     .[0].version == $version and
     .[0].tag == $tag and
-    (.[0].released_at | type == "string") and
-    (.[0].released_at | test("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$")) and
     .[0].channel == "stable" and
-    .[0].severity == "normal" and
-    .[0].title == ("HMG " + $tag + " available") and
-    .[0].message == "Run hmg update to install the latest HMG release." and
+    .[0].source_sha == $source_sha and
     .[0].update_command == "hmg update" and
-    .[0].sha256sums_url == "https://github.com/HMG-AI/HMG-public/releases/latest/download/SHA256SUMS.txt"
+    .[0].sha256sums_url == ("https://github.com/HMG-AI/HMG-public/releases/download/" + $tag + "/SHA256SUMS.txt")
   ' "${asset_dir}/version.json" >/dev/null
 
   : > "${output_manifest}"
@@ -338,7 +382,7 @@ verify_local_asset_set() {
   done < "${expected_assets_file}"
   computed_digest="$(sha256sum "${output_manifest}" | cut -d ' ' -f1)"
   if [[ "${computed_digest}" != "${expected_digest}" ]]; then
-    echo 'The canonical 10-asset digest does not match signed provenance.' >&2
+    echo 'The canonical 17-asset digest does not match signed provenance.' >&2
     return 1
   fi
 }
@@ -351,6 +395,7 @@ verify_published_terminal() {
   local expected_digest="$5"
   local terminal_dir="$6"
   local require_latest="$7"
+  local source_sha="$8"
   local release_id tag_refs latest_file terminal_manifest
 
   jq -e --arg tag "${source_tag}" '
@@ -370,7 +415,7 @@ verify_published_terminal() {
   terminal_manifest="${RUNNER_TEMP}/terminal-assets.sha256"
   verify_local_asset_set \
     "${terminal_dir}" "${expected_assets_file}" "${expected_digest}" \
-    "${source_tag}" "${terminal_manifest}"
+    "${source_tag}" "${source_sha}" "${terminal_manifest}"
 
   if [[ "${require_latest}" == 'true' ]]; then
     release_id="$(jq -r '.id' "${release_file}")"
@@ -612,7 +657,7 @@ if ((final_count == 1)); then
     verify_published_terminal \
       "${final_existing}" "${source_tag}" "${PROMOTION_COMMIT}" \
       "${expected_assets}" "${asset_set_digest}" \
-      "${RUNNER_TEMP}/terminal-assets" false
+      "${RUNNER_TEMP}/terminal-assets" false "${source_sha}"
     release_url="$(jq -r '.html_url' "${final_existing}")"
     {
       echo '### Promoted release already published'
@@ -620,7 +665,7 @@ if ((final_count == 1)); then
       echo "- Release: [${source_tag}](${release_url})"
       echo "- Promotion commit: ${PROMOTION_COMMIT}"
       echo "- Signed candidate tree: ${candidate_tree}"
-      echo "- 10-asset digest: ${asset_set_digest}"
+      echo "- 17-asset digest: ${asset_set_digest}"
       echo '- Result: exact immutable terminal state; no write was performed.'
     } >> "${GITHUB_STEP_SUMMARY}"
     exit 0
@@ -680,7 +725,7 @@ download_assets_by_id \
   "${staging_release}" "${expected_assets}" "${staging_asset_dir}"
 verify_local_asset_set \
   "${staging_asset_dir}" "${expected_assets}" "${asset_set_digest}" \
-  "${source_tag}" "${staging_manifest}"
+  "${source_tag}" "${source_sha}" "${staging_manifest}"
 
 staging_release_id="$(jq -r '.id' "${staging_release}")"
 staging_current="${RUNNER_TEMP}/staging-current.json"
@@ -713,7 +758,7 @@ if [[ -s "${staging_starter_names}" ]]; then
     "${staging_current}" "${expected_assets}" "${staging_asset_dir}"
   verify_local_asset_set \
     "${staging_asset_dir}" "${expected_assets}" "${asset_set_digest}" \
-    "${source_tag}" "${staging_manifest}"
+    "${source_tag}" "${source_sha}" "${staging_manifest}"
 else
   api_json "repos/${target_repository}/releases/${staging_release_id}" \
     > "${staging_current}"
@@ -725,7 +770,7 @@ else
 fi
 
 # No final tag or final release write occurs above this line. A mutable staging
-# starter may have been recovered only after all ten captured bytes passed the
+# starter may have been recovered only after all 17 captured bytes passed the
 # signed digest. Refresh final state and prevent an older retry becoming latest.
 prewrite_releases="${RUNNER_TEMP}/releases-prewrite.json"
 list_releases > "${prewrite_releases}"
@@ -856,7 +901,7 @@ download_assets_by_id \
   "${final_draft_current}" "${expected_assets}" "${final_verify_dir}"
 verify_local_asset_set \
   "${final_verify_dir}" "${expected_assets}" "${asset_set_digest}" \
-  "${source_tag}" "${final_verify_manifest}"
+  "${source_tag}" "${source_sha}" "${final_verify_manifest}"
 diff -u "${staging_manifest}" "${final_verify_manifest}"
 
 final_draft_pre_publish="${RUNNER_TEMP}/final-draft-pre-publish.json"
@@ -894,7 +939,7 @@ done
 verify_published_terminal \
   "${published_release}" "${source_tag}" "${PROMOTION_COMMIT}" \
   "${expected_assets}" "${asset_set_digest}" \
-  "${RUNNER_TEMP}/published-assets" true
+  "${RUNNER_TEMP}/published-assets" true "${source_sha}"
 
 # Cleanup is intentionally after the exact immutable terminal proof. Failure
 # cannot roll back or weaken the final release, so it is reported as a warning.
@@ -930,6 +975,6 @@ release_url="$(jq -r '.html_url' "${published_release}")"
   echo "- Source workflow: [trusted run](${workflow_run})"
   echo "- Signed candidate tree: ${candidate_tree}"
   echo "- Provenance key: ${provenance_key_id}"
-  echo "- 10-asset digest: ${asset_set_digest}"
+  echo "- 17-asset digest: ${asset_set_digest}"
   echo '- Final release: immutable, latest, and byte-for-byte reverified'
 } >> "${GITHUB_STEP_SUMMARY}"
