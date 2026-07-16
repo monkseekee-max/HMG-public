@@ -1,0 +1,11 @@
+{
+  "schema_version": "hmg-public-binary-release-provenance/v1",
+  "release_tag": "v1.7.7",
+  "version": "1.7.7",
+  "source_repository": "HMG-AI/HMG",
+  "source_sha": "e67aa728f280fc22f6c1596f6c245d0e6bca2e8f",
+  "source_workflow_run": "https://github.com/HMG-AI/HMG/actions/runs/29496232620",
+  "source_artifact": "hmg-public-1.7.7-e67aa728f280fc22f6c1596f6c245d0e6bca2e8f",
+  "asset_count": 17,
+  "asset_set_sha256": "cf0d252d252721eb5fe160387b8bef640e81388bc1381ba0904347bf9cee74b8"
+}
