@@ -1,6 +1,6 @@
 {
   "name": "@hmg_ai/sdk-ts",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "description": "HMG Agent Memory SDK — Community Edition (TypeScript)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

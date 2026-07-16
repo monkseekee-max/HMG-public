@@ -445,6 +445,21 @@ export default function hmgPiExtension(pi: ExtensionAPI) {
   });
 
   registerHmgTool(pi, {
+    name: "hmg_connection_status",
+    label: "HMG Connection Status",
+    mcpTool: "memory_connection_status",
+    description: "Inspect non-sensitive host session, context-delivery, and spool evidence.",
+    promptSnippet: "Inspect HMG host connection status without exposing prompts or tool output",
+    promptGuidelines: ["Use hmg_connection_status to diagnose host continuity and context delivery without requesting raw hook payloads."],
+    parameters: Type.Object({
+      host: Type.Optional(Type.String({ description: "Exact host adapter id, for example codex or pi" })),
+      session_id: Type.Optional(Type.String({ description: "Exact resolved HMG session id" })),
+      session_limit: Type.Optional(Type.Number({ description: "Maximum recent unexpired sessions (1-100)" })),
+      receipt_limit: Type.Optional(Type.Number({ description: "Maximum recent connection receipts (1-400)" })),
+    }),
+  });
+
+  registerHmgTool(pi, {
     name: "hmg_recall",
     label: "HMG Recall",
     mcpTool: "memory_recall",

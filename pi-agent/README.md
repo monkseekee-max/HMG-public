@@ -1,7 +1,7 @@
 # @hmg_ai/pi-agent
 
 <p>
-  <img src="https://img.shields.io/badge/version-1.7.6-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.7.7-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-MIT%20%7C%20Apache--2.0-green.svg" alt="License">
 </p>
 
@@ -12,7 +12,7 @@ If npm publication is temporarily delayed by npm account policy, the matching re
 ## Install
 
 ```bash
-pi install npm:@hmg_ai/pi-agent@1.7.6
+pi install npm:@hmg_ai/pi-agent@1.7.7
 ```
 
 HMG's installer and `hmg init -g` use the same package route when pi is detected.

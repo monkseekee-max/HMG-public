@@ -16,6 +16,17 @@ Use this workflow after an integration plan or init has been applied.
 5. Check handoff write and later scoped brief recall.
 6. Produce a pass/fail scorecard with minimal reproduction commands.
 
+Use the deterministic runner for the handoff artifact:
+
+```bash
+python3 scripts/hmg-integration-scorecard.py test --agent <id> --target <repo> \
+  --baseline-command '<existing flag-off test command>'
+```
+
+It writes `.hmg-integration/scorecard.json` with command exit state and hashed
+evidence, never raw command output. Host loaded, executed, emitted, and
+acknowledged stages must still be interpreted separately from
+`hmg integrations explain`.
+
 The result should prove memory write, recall, handoff, and scope isolation, not
 merely that config files exist.
-
