@@ -37,7 +37,7 @@ err() { log "ERROR: $*" >&2; exit 1; }
 need_cmd() { command -v "$1" >/dev/null 2>&1 || err "Required command not found: $1"; }
 
 # ── Parse args ─────────────────────────────────────────────────────────────
-while [[ $# -gt 0 ]]; do
+while [ "$#" -gt 0 ]; do
   case "$1" in
     --prefix)  BIN_DIR="$2"; shift 2 ;;
     --dry-run) DRY_RUN=true; shift ;;
@@ -160,13 +160,21 @@ do_install() {
   local archive="hmg-${VERSION}-${target}.tar.gz"
   log "Platform: $target"
 
-  # Source 1: GitHub Releases
+  # Source 1: GitHub's current release. Trying the latest-release URL first
+  # also supports immutable-release recovery tags whose asset filenames keep
+  # the product version (for example hmg-1.7.6-...). Older explicitly
+  # requested versions naturally miss here and fall through to their tag.
+  if install_from_url "${RELEASE_BASE}/${archive}" "$archive"; then
+    return 0
+  fi
+
+  # Source 2: Exact GitHub version tag.
   local gh_url="${HMG_GITHUB}/releases/download/v${VERSION}/${archive}"
   if install_from_url "$gh_url" "$archive"; then
     return 0
   fi
 
-  # Source 2..N: Official website mirrors (hmg1ai.com CDN, then hmg2ai.com fallback)
+  # Source 3..N: Official website mirrors (hmg1ai.com CDN, then hmg2ai.com fallback)
   for base in $MIRROR_BASES; do
     if install_from_url "${base}/${archive}" "$archive"; then
       return 0

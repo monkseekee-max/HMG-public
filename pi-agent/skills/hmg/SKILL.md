@@ -78,4 +78,3 @@ cannot be determined, omit the branch and let HMG infer it.
 
 Use `docs/llms.txt` for the current agent-facing tool, CLI, and skill index.
 Do not maintain a second exhaustive tool list inside this skill.
-
