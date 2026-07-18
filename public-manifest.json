@@ -3,7 +3,7 @@
   "product": {
     "name": "HMG",
     "full_name": "Holographic Memory Graph",
-    "version": "1.7.7",
+    "version": "1.7.8",
     "release_channel": "stable",
     "tagline": "Agent memory that actually works"
   },

@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "hmg-certification"
-version = "1.7.7"
+version = "1.7.8"
 dependencies = [
  "hmg-protocol",
  "serde_json",
@@ -12,7 +12,7 @@ dependencies = [
 
 [[package]]
 name = "hmg-protocol"
-version = "1.7.7"
+version = "1.7.8"
 dependencies = [
  "serde",
  "serde_json",
