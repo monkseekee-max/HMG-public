@@ -352,7 +352,7 @@
   <section id="quickstart">
     <div class="section-header">
       <h2 data-i18n="qs_title">Get a working memory loop in 5 minutes</h2>
-      <p class="section-sub" data-i18n="qs_sub">Install → initialize → start daemon → connect an agent</p>
+      <p class="section-sub" data-i18n="qs_sub">Install → automatic readiness → connect an agent</p>
       <div class="section-divider"></div>
     </div>
     <div class="demo-window">
@@ -368,12 +368,11 @@
         </div>
         <div class="tab-panel active" id="tab-cli">
           <pre><code><span style="color:var(--green)">$</span> curl -fsSL https://github.com/HMG-AI/HMG-public/releases/latest/download/install.sh | sh
-<span style="color:var(--text2)">  Installing HMG v1.7.6 for x86_64-unknown-linux-gnu...</span>
-<span style="color:var(--green)">  <svg style="width:14px;height:14px;vertical-align:middle;margin-right:.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>HMG v1.7.6 installed to ~/.local/bin</span>
+<span style="color:var(--text2)">  Installing HMG v1.7.8 for x86_64-unknown-linux-gnu...</span>
+<span style="color:var(--green)">  <svg style="width:14px;height:14px;vertical-align:middle;margin-right:.2em" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>HMG v1.7.8 installed, configured, and ready</span>
 
-<span style="color:var(--green)">$</span> hmg init -g
-<span style="color:var(--green)">$</span> hmg daemon start
-<span style="color:var(--text2)">  Daemon started on http://127.0.0.1:7654</span>
+<span style="color:var(--green)">$</span> hmg doctor
+<span style="color:var(--text2)">  Core ready · store ready · daemon ready</span>
 
 <span style="color:var(--green)">$</span> hmg license status
 <span style="color:var(--text2)">  Edition: Community (free)
@@ -819,7 +818,7 @@ en: {
   feat_4t:'Local-First',feat_4d:'Embedded storage, zero external dependencies. Data stays local, works offline.',
   feat_5t:'47 MCP Tools',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, and graph-health workflows.',
   feat_6t:'Open Protocol',feat_6d:'hmg-protocol (Apache-2.0) standalone crate defines types and serialization for all memory operations.',
-  qs_title:'Get a working memory loop in 5 minutes',qs_sub:'Install → initialize → start daemon → connect an agent',
+  qs_title:'Get a working memory loop in 5 minutes',qs_sub:'Install → automatic readiness → connect an agent',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'Editions',ed_sub:'Single binary, runtime edition detection. No reinstall needed.',
   ed_free:'Free',ed_free_note:'Personal use, no license key needed',ed_mo:'/mo',
@@ -872,7 +871,7 @@ en: {
   feat_4t:'本地优先',feat_4d:'嵌入式存储，零外部依赖。数据完全本地，离线可用。',
   feat_5t:'47 个 MCP 工具',feat_5d:'覆盖核心记忆、治理、MemoryQL、观察、密钥库、panorama 和图健康工作流。',
   feat_6t:'开放协议',feat_6d:'hmg-protocol (Apache-2.0) 独立 crate 定义记忆原子、修正、治理、范围的类型和序列化。',
-  qs_title:'5 分钟跑通记忆循环',qs_sub:'安装 → 初始化 → 启动 daemon → 连接 agent',
+  qs_title:'5 分钟跑通记忆循环',qs_sub:'安装 → 自动配置并就绪 → 连接 Agent',
   qs_tab1:'命令行',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'版本对比',ed_sub:'单一二进制，运行时版本检测。无需重装。',
   ed_free:'免费',ed_free_note:'个人使用，无需 license',ed_mo:'/月',
@@ -925,7 +924,7 @@ en: {
   feat_4t:'本地優先',feat_4d:'嵌入式儲存，零外部依賴。資料完全本地，離線可用。',
   feat_5t:'47 個 MCP 工具',feat_5d:'涵蓋核心記憶、治理、MemoryQL、觀察、密鑰庫、panorama 與圖健康工作流。',
   feat_6t:'開放協議',feat_6d:'hmg-protocol (Apache-2.0) 獨立 crate 定義記憶原子、修正、治理、範圍的類型和序列化。',
-  qs_title:'5 分鐘上手',qs_sub:'安裝 → 初始化 → 儲存 → 查詢',
+  qs_title:'5 分鐘上手',qs_sub:'安裝 → 自動設定並就緒 → 連接 Agent',
   qs_tab1:'命令列',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'版本對比',ed_sub:'單一二進位，執行時版本偵測。無需重灌。',
   ed_free:'免費',ed_free_note:'個人使用，無需 license',ed_mo:'/月',
@@ -969,7 +968,7 @@ ja: {
   feat_4t:'ローカルファースト',feat_4d:'組み込みストレージ、外部依存なし。データは完全にローカル、オフライン動作可能。',
   feat_5t:'37個のMCPツール',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'オープンプロトコル',feat_6d:'hmg-protocol (Apache-2.0) スタンドアロンクレートがメモリ操作の全型とシリアライズを定義。',
-  qs_title:'5分で始める',qs_sub:'インストール → 初期化 → 保存 → 照会',
+  qs_title:'5分で始める',qs_sub:'インストール → 自動セットアップと準備完了 → エージェント接続',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'エディション',ed_sub:'単一バイナリ、ランタイムエディション検出。再インストール不要。',
   ed_free:'無料',ed_free_note:'個人利用、ライセンスキー不要',ed_mo:'/月',
@@ -1014,7 +1013,7 @@ ko: {
   feat_4t:'로컬 우선',feat_4d:'임베디드 스토리지, 외부 의존성 없음. 데이터는 완전히 로컬, 오프라인 동작.',
   feat_5t:'37개 MCP 도구',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'오픈 프로토콜',feat_6d:'hmg-protocol (Apache-2.0) 독립 크레이트가 모든 메모리 작업의 타입과 직렬화를 정의.',
-  qs_title:'5분 안에 시작',qs_sub:'설치 → 초기화 → 저장 → 조회',
+  qs_title:'5분 안에 시작',qs_sub:'설치 → 자동 설정 및 준비 완료 → 에이전트 연결',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'에디션',ed_sub:'단일 바이너리, 런타임 에디션 감지. 재설치 불필요.',
   ed_free:'무료',ed_free_note:'개인 사용, 라이선스 키 불필요',ed_mo:'/월',
@@ -1059,7 +1058,7 @@ fr: {
   feat_4t:'Local d\'abord',feat_4d:'Stockage embarqué, zéro dépendance externe. Données locales, fonctionne hors ligne.',
   feat_5t:'47 outils MCP',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'Protocole ouvert',feat_6d:'hmg-protocol (Apache-2.0) définit les types et la sérialisation pour toutes les opérations mémoire.',
-  qs_title:'Commencer en 5 minutes',qs_sub:'Installer → Initialiser → Stocker → Interroger',
+  qs_title:'Commencer en 5 minutes',qs_sub:'Installer → configuration automatique prête → connecter un agent',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'Éditions',ed_sub:'Binaire unique, détection d\'édition au runtime. Pas de réinstallation.',
   ed_free:'Gratuit',ed_free_note:'Usage personnel, pas de clé',ed_mo:'/mois',
@@ -1103,7 +1102,7 @@ de: {
   feat_4t:'Lokal zuerst',feat_4d:'Embedded-Speicher, keine externen Abhängigkeiten. Daten bleiben lokal, Offline-fähig.',
   feat_5t:'47 MCP-Tools',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'Offenes Protokoll',feat_6d:'hmg-protocol (Apache-2.0) definiert Typen und Serialisierung für alle Speicheroperationen.',
-  qs_title:'In 5 Minuten starten',qs_sub:'Installieren → Initialisieren → Speichern → Abfragen',
+  qs_title:'In 5 Minuten starten',qs_sub:'Installieren → automatisch einrichten → Agent verbinden',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'Editionen',ed_sub:'Ein Binary, Runtime-Editionserkennung. Keine Neuinstallation nötig.',
   ed_free:'Kostenlos',ed_free_note:'Persönliche Nutzung, kein Lizenzschlüssel',ed_mo:'/Monat',
@@ -1147,7 +1146,7 @@ es: {
   feat_4t:'Local primero',feat_4d:'Almacenamiento embebido, cero dependencias externas. Datos locales, funciona offline.',
   feat_5t:'47 herramientas MCP',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'Protocolo abierto',feat_6d:'hmg-protocol (Apache-2.0) define tipos y serialización para todas las operaciones de memoria.',
-  qs_title:'Empezar en 5 minutos',qs_sub:'Instalar → Inicializar → Almacenar → Consultar',
+  qs_title:'Empezar en 5 minutos',qs_sub:'Instalar → configuración automática lista → conectar un agente',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'Ediciones',ed_sub:'Un solo binario, detección de edición en runtime. Sin reinstalación.',
   ed_free:'Gratis',ed_free_note:'Uso personal, sin clave de licencia',ed_mo:'/mes',
@@ -1192,7 +1191,7 @@ es: {
   feat_4t:'Local primeiro',feat_4d:'Armazenamento embutido, zero dependências externas. Dados locais, funciona offline.',
   feat_5t:'47 ferramentas MCP',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'Protocolo aberto',feat_6d:'hmg-protocol (Apache-2.0) define tipos e serialização para todas as operações de memória.',
-  qs_title:'Começar em 5 minutos',qs_sub:'Instalar → Inicializar → Armazenar → Consultar',
+  qs_title:'Começar em 5 minutos',qs_sub:'Instalar → configuração automática pronta → conectar um agente',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'Edições',ed_sub:'Binário único, detecção de edição em runtime. Sem reinstalação.',
   ed_free:'Grátis',ed_free_note:'Uso pessoal, sem chave de licença',ed_mo:'/mês',
@@ -1237,7 +1236,7 @@ ru: {
   feat_4t:'Локальное-first',feat_4d:'Встроенное хранилище, ноль внешних зависимостей. Данные локальны, работает оффлайн.',
   feat_5t:'47 инструментов MCP',feat_5d:'Core memory, governance, MemoryQL, observation, vault, panorama, graph-health workflows.',
   feat_6t:'Открытый протокол',feat_6d:'hmg-protocol (Apache-2.0) определяет типы и сериализацию для всех операций с памятью.',
-  qs_title:'Начать за 5 минут',qs_sub:'Установка → Инициализация → Сохранение → Запрос',
+  qs_title:'Начать за 5 минут',qs_sub:'Установка → автоматическая настройка → подключение агента',
   qs_tab1:'CLI',qs_tab2:'HTTP API',qs_tab3:'MCP',
   ed_title:'Редакции',ed_sub:'Единый бинарник, определение редакции во время выполнения. Переустановка не нужна.',
   ed_free:'Бесплатно',ed_free_note:'Личное использование, без ключа',ed_mo:'/мес',

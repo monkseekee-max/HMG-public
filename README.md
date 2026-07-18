@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.7.7-blue.svg" alt="Version">
+  <img src="https://img.shields.io/badge/version-1.7.8-blue.svg" alt="Version">
   <img src="https://img.shields.io/badge/license-Apache--2.0%20%7C%20Community-green.svg" alt="License">
   <img src="https://img.shields.io/badge/rust-1.85%2B-orange.svg" alt="Rust">
   <img src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg" alt="Platform">
@@ -58,19 +58,29 @@ One tool call returns complete context. No prompt-stuffing. No context window li
 # Install (Linux / macOS)
 curl -fsSL https://github.com/HMG-AI/HMG-public/releases/latest/download/install.sh | sh
 
-# Initialize + start the daemon
-hmg init -g
-hmg daemon start
+# The installer performs setup, starts or replaces the daemon, and proves
+# required core readiness before it exits successfully.
+hmg doctor
 ```
 
 ```powershell
 # Install (Windows PowerShell)
 irm https://github.com/HMG-AI/HMG-public/releases/latest/download/install.ps1 | iex
 
-# Initialize + start the daemon
-hmg init -g
-hmg daemon start
+# Setup and daemon readiness are automatic on a successful installer exit.
+hmg doctor
 ```
+
+Install and `hmg update` return exit `0` only after the selected binary bundle,
+automatic setup, daemon takeover, and required core readiness checks succeed.
+Failure returns non-zero and attempts to restore the previous working runtime;
+users should never need a manual `hmg init` or daemon restart to repair a
+successful install. Re-running the installer is the idempotent update path.
+
+`hmg uninstall` removes the runtime and HMG-owned integration wiring while
+preserving stores, observations, audit history, and key material by default.
+Destructive removal requires
+`hmg uninstall --purge-data --confirm-purge PURGE-HMG-DATA`.
 
 Store your first memory and pull it back — same works for any HTTP client:
 

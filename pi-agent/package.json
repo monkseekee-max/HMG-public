@@ -1,6 +1,6 @@
 {
   "name": "@hmg_ai/pi-agent",
-  "version": "1.7.7",
+  "version": "1.7.8",
   "description": "HMG memory adapter for the pi coding agent",
   "type": "module",
   "keywords": [
@@ -17,7 +17,8 @@
     "extensions",
     "skills",
     "prompts",
-    "README.md"
+    "README.md",
+    "publish-provenance.json"
   ],
   "pi": {
     "extensions": [

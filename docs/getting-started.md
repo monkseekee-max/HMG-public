@@ -35,6 +35,30 @@ hmg --version
 # hmg 1.7.6-community
 ```
 
+## Update or Uninstall
+
+```bash
+hmg update
+hmg uninstall
+```
+
+Install and update are self-healing transactions: HMG verifies the complete
+candidate bundle before stopping the current daemon, creates a verified offline
+memory backup, preserves encryption keys, switches the binaries, repairs setup,
+and verifies the new daemon. If a required step fails, the previous binaries
+and daemon are restored automatically.
+
+`hmg uninstall` removes the HMG runtime and HMG-owned integration entries but
+preserves memories, observations, audit history, and keys. Permanent data
+removal is deliberately explicit:
+
+```bash
+hmg uninstall --purge-data --confirm-purge PURGE-HMG-DATA
+```
+
+The purge covers HMG's managed data home. A custom store outside that directory
+is always preserved.
+
 
 ## Start the Memory Service
 

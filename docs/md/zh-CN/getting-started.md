@@ -41,6 +41,21 @@ hmg --version
 # hmg 1.7.6-community
 ```
 
+## 更新或卸载
+
+```bash
+hmg update
+hmg uninstall
+```
+
+安装和更新会自动完成完整事务：先验证候选安装包，再停止当前 daemon；随后创建经过校验的离线记忆备份、保护密钥、切换二进制、修复配置，并验证新 daemon 已接管。任一必要步骤失败时，会自动恢复旧二进制并重启原 daemon，无需用户执行额外修复命令。
+
+`hmg uninstall` 默认只删除运行程序和 HMG 自己写入的集成配置，保留记忆、观察、审计记录和密钥。永久删除托管数据必须显式使用破坏性参数；位于 HMG 托管数据目录之外的自定义 store 仍然保留。
+
+```bash
+hmg uninstall --purge-data --confirm-purge PURGE-HMG-DATA
+```
+
 ## 启动记忆服务
 
 ```bash
