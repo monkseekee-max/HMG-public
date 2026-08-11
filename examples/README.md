@@ -8,8 +8,8 @@ Integration quickstarts and synthetic data for HMG Community Edition.
 |---|---|---|
 | Python | [`quickstart.py`](quickstart.py) | Memorize, recall, correct, govern via Python SDK |
 | TypeScript | [`quickstart.ts`](quickstart.ts) | Memorize, recall, correct, govern via TypeScript SDK |
-| MCP (raw) | See [API Reference](../docs/api-reference.md) | Direct MCP tool calls |
-| HTTP (curl) | See [API Reference](../docs/api-reference.md) | REST API examples |
+| MCP (raw) | See [MCP Reference](../docs/en/mcp-reference.md) | Direct MCP tool calls |
+| HTTP (curl) | See [MCP Reference](../docs/en/mcp-reference.md) | REST API examples |
 
 ## Prerequisites
 
@@ -76,9 +76,9 @@ The [`synthetic-fixtures/`](synthetic-fixtures/) directory contains sample atom 
 
 ## More Resources
 
-- [Getting Started](../docs/getting-started.md) — full setup guide
-- [API Reference](../docs/api-reference.md) — all tools and endpoints
-- [Concepts](../docs/concepts.md) — memory atoms, correction, governance
+- [Quick Start](../docs/en/quick-start.md) — full setup guide
+- [MCP Reference](../docs/en/mcp-reference.md) — all tools and endpoints
+- [Concepts](../docs/en/concepts.md) — memory atoms, correction, governance
 
 ## License
 
