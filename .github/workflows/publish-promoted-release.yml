@@ -41,7 +41,7 @@ jobs:
       publish: ${{ steps.contract.outputs.publish }}
     steps:
       - name: Check out protected main history
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
         with:
           ref: ${{ github.workflow_sha }}
           fetch-depth: 0
@@ -71,7 +71,7 @@ jobs:
       pull-requests: read
     steps:
       - name: Check out the reviewed publisher control code
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
         with:
           ref: ${{ github.workflow_sha }}
           path: publisher-control
@@ -79,7 +79,7 @@ jobs:
           persist-credentials: false
 
       - name: Check out the promoted commit as data
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v4
         with:
           ref: ${{ needs.classify.outputs.promotion_commit }}
           path: candidate
