@@ -729,7 +729,7 @@ main() {
   log "    HMG_EMBEDDING_ENDPOINT=https://hf-mirror.com hmg model embedding download"
   log ""
   log "Update: hmg update"
-  log "Docs:   https://hmg-ai.github.io/HMG-public/"
+  log "Docs:   https://docs.hmg1ai.com/"
   log "Web:    https://hmg1ai.com/"
   log "GitHub: ${HMG_GITHUB}"
 }

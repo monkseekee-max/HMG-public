@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/img/logovideo.gif" alt="HMG Logo" width="360" style="border-radius:12px;" />
+  <img src="docs/assets/logovideo.gif" alt="HMG Logo" width="360" style="border-radius:12px;" />
 </p>
 
 <p align="center">
@@ -19,7 +19,7 @@
 </p>
 
 <p align="center">
-  <a href="https://hmg-ai.github.io/HMG-public/">🌐 Docs</a> ·
+  <a href="https://docs.hmg1ai.com/">🌐 Docs</a> ·
   <a href="https://github.com/HMG-AI/HMG-public/releases">📦 Releases</a> ·
   <a href="https://hmg1ai.com/">🏠 Website</a> ·
   <a href="#quick-start">🚀 Quick Start</a> ·
@@ -224,24 +224,26 @@ This repository holds the **public artifacts** for HMG — everything you need t
 | [`openapi/`](openapi/) | HTTP API specification |
 | [`sdk-python/`](sdk-python/) · [`sdk-ts/`](sdk-ts/) | Official Python and TypeScript SDKs |
 | [`certification/`](certification/) | Conformance tests for compatible implementations |
-| [`docs/`](docs/) | Multilingual documentation (10 languages) + live site |
+| [`docs/`](docs/) | Multilingual documentation (15 languages), published at [docs.hmg1ai.com](https://docs.hmg1ai.com/) |
 | [`scripts/`](scripts/) | Installers — `install.sh`, `install.ps1` |
 
 ## Documentation
 
+The full multilingual documentation (15 languages) is maintained in [`docs/`](docs/) and published at [docs.hmg1ai.com](https://docs.hmg1ai.com/).
+
 | | |
 |---|---|
-| [Getting Started](docs/md/getting-started.md) | Install → first memory in 5 minutes |
-| [Concepts](docs/md/concepts.md) | Memory atoms, correction, governance, scope |
-| [API Reference](docs/md/api-reference.md) | MCP tools and HTTP endpoints |
-| [Architecture](docs/md/architecture.md) | System overview |
-| [FAQ](docs/md/faq.md) | Common questions |
-| [Upgrade Guide](docs/md/upgrade.md) | Version-to-version migration notes |
+| [Quick Start](docs/en/quick-start.md) | Install → first memory in 5 minutes |
+| [Concepts](docs/en/concepts.md) | Memory atoms, correction, governance, scope |
+| [MCP Reference](docs/en/mcp-reference.md) | MCP tool reference |
+| [SDK Reference](docs/en/sdk-reference.md) | Python and TypeScript SDKs |
+| [CLI Reference](docs/en/cli-reference.md) | CLI commands |
+| [FAQ](docs/en/faq.md) | Common questions |
 
 ## Links
 
 - **Website**: [hmg1ai.com](https://hmg1ai.com/)
-- **Docs**: [hmg-ai.github.io/HMG-public](https://hmg-ai.github.io/HMG-public/)
+- **Docs**: [docs.hmg1ai.com](https://docs.hmg1ai.com/)
 - **Releases**: [GitHub Releases](https://github.com/HMG-AI/HMG-public/releases)
 - **Issues**: [GitHub Issues](https://github.com/HMG-AI/HMG-public/issues)
 - **Security**: [GitHub Security](https://github.com/HMG-AI/HMG-public/security)

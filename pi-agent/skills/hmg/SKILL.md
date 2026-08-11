@@ -76,5 +76,5 @@ cannot be determined, omit the branch and let HMG infer it.
 
 ## Public Contract
 
-Use `docs/llms.txt` for the current agent-facing tool, CLI, and skill index.
+Use `public-manifest.json` (`public_tools`) for the current agent-facing tool and CLI index.
 Do not maintain a second exhaustive tool list inside this skill.

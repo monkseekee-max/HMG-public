@@ -94,7 +94,7 @@ fi
 forbidden_paths="$(
     find "${CHECK_DIR}" \
         -path "${CHECK_DIR}/.git" -prune -o \
-        \( -path '*/crates/hmg-*' -o -path '*/docs/adr' -o -path '*/docs/md/adr-classification.md' \) \
+        -path '*/crates/hmg-*' \
         -print 2>/dev/null || true
 )"
 if [[ -n "${forbidden_paths}" ]]; then

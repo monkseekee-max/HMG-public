@@ -9,7 +9,7 @@
   },
   "urls": {
     "website": "https://hmg1ai.com/",
-    "docs": "https://hmg-ai.github.io/HMG-public/",
+    "docs": "https://docs.hmg1ai.com/",
     "repository": "https://github.com/HMG-AI/HMG-public",
     "releases": "https://github.com/HMG-AI/HMG-public/releases",
     "pricing": "https://hmg1ai.com/pricing",
@@ -56,11 +56,16 @@
       "en",
       "ja",
       "ko",
-      "fr",
+      "ar",
       "de",
       "es",
+      "fr",
+      "hi",
+      "id",
       "pt-BR",
-      "ru"
+      "ru",
+      "tr",
+      "vi"
     ],
     "website": [
       "zh-CN",
@@ -219,6 +224,7 @@
     "Troubleshooting"
   ],
   "deprecated_urls": [
+    "https://hmg-ai.github.io/HMG-public/",
     "example.com-placeholder",
     "example.com-placeholder/HMG",
     "example.com-placeholder/HMG/#pricing"

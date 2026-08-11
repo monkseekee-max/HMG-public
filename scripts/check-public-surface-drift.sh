@@ -103,8 +103,7 @@ echo "━━━ 1. Deprecated URL Check ━━━"
 # Check for deprecated URLs in all public surfaces
 SURFACE_FILES=(
   "$SCRIPT_DIR/../README.md"
-  "$SCRIPT_DIR/../docs/index.html"
-  "$SCRIPT_DIR/../docs/md/*.md"
+  "$SCRIPT_DIR/../docs/README.md"
   "$SCRIPT_DIR/install.sh"
   "$SCRIPT_DIR/install.ps1"
   "$SCRIPT_DIR/../sdk-python/README.md"
@@ -150,31 +149,10 @@ if [[ -f "$README_FILE" ]]; then
 fi
 
 echo ""
-echo "━━━ 3. Edition Feature Consistency ━━━"
-
-# Check that Community doesn't claim to lack One-Shot Recall or semantic search
-DOCS_HTML="$SCRIPT_DIR/../docs/index.html"
-if [[ -f "$DOCS_HTML" ]]; then
-  # Check for Community edition items marked as "no" that should be yes
-  if grep -q 'class="no".*ed_c7\|class="no".*ed_c8\|class="no".*ed_c9' "$DOCS_HTML" 2>/dev/null; then
-    drift_error "docs/index.html Community card still has One-Shot/Observation/Search marked as unavailable"
-  else
-    ok "Community edition features correctly shown as available"
-  fi
-fi
-
-# Check for "keyword" recall engine for Community (should be One-Shot)
-if [[ -f "$DOCS_HTML" ]]; then
-  if grep -q 'ed_c7.*One-Shot\|One-Shot Recall' "$DOCS_HTML" 2>/dev/null; then
-    ok "Community recall correctly shows One-Shot"
-  fi
-fi
-
-echo ""
-echo "━━━ 4. Version Consistency ━━━"
+echo "━━━ 3. Version Consistency ━━━"
 
 # Check version references
-for f in "$README_FILE" "$DOCS_HTML"; do
+for f in "$README_FILE"; do
   if [[ -f "$f" ]]; then
     # Look for version patterns that don't match manifest
     FILE_VERSIONS=$(grep -oP 'v?\d+\.\d+\.\d+' "$f" 2>/dev/null | sort -u || true)
@@ -189,10 +167,10 @@ for f in "$README_FILE" "$DOCS_HTML"; do
 done
 
 echo ""
-echo "━━━ 5. URL Consistency ━━━"
+echo "━━━ 4. URL Consistency ━━━"
 
 # Check that official URLs in public surfaces match manifest
-for f in "$README_FILE" "$DOCS_HTML"; do
+for f in "$README_FILE"; do
   if [[ -f "$f" ]]; then
     # Check release URL pattern
     if grep -q 'github.com/HMG-AI/HMG-public/releases' "$f" 2>/dev/null; then
@@ -204,10 +182,10 @@ for f in "$README_FILE" "$DOCS_HTML"; do
 done
 
 echo ""
-echo "━━━ 6. Price Consistency ━━━"
+echo "━━━ 5. Price Consistency ━━━"
 
 # Check for conflicting price mentions
-for f in "$README_FILE" "$DOCS_HTML"; do
+for f in "$README_FILE"; do
   if [[ -f "$f" ]]; then
     # Find all price patterns
     PRICES=$(grep -oP '\$\d+' "$f" 2>/dev/null | sort -u || true)
